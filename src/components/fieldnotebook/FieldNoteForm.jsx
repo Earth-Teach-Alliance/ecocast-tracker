@@ -22,9 +22,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     images: [],
     // impact_notes: "", // This field is being removed as per the outline
     human_impact: "",
-    tree_equity_index: "",
-    action_plan: "",
-    sdg_goals: []
+    tree_equity_index: ""
   });
   const [newSpecies, setNewSpecies] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -128,6 +126,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     onSubmit(formData);
   };
 
+  // sdgGoals is no longer used, but kept for consistency if it was intended to be removed only from formData and JSX
   const sdgGoals = [
     { number: 1, name: "No Poverty", color: "bg-red-600" },
     { number: 2, name: "Zero Hunger", color: "bg-yellow-600" },
@@ -347,52 +346,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
               <p className="text-xs text-gray-600 mt-1">
                 Tree Equity Score measures how well tree canopy is distributed in relation to income, employment, race, age, and health factors.
               </p>
-            </div>
-
-            {/* Proposed Action Plan field */}
-            <div>
-              <Label htmlFor="action_plan">Proposed Action Plan</Label>
-              <Textarea
-                id="action_plan"
-                value={formData.action_plan}
-                onChange={(e) => setFormData({ ...formData, action_plan: e.target.value })}
-                placeholder="Describe actions that could address the observed issues..."
-                className="mt-2"
-                rows={4}
-              />
-            </div>
-
-            {/* UN Sustainable Development Goals selection */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label>UN Sustainable Development Goals</Label>
-                <a 
-                  href="https://sdgs.un.org/goals" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  View all SDG goals
-                </a>
-              </div>
-              <p className="text-xs text-gray-600 mb-3">Select the SDG goals this action plan aligns with:</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {sdgGoals.map((goal) => (
-                  <button
-                    key={goal.number}
-                    type="button"
-                    onClick={() => toggleSDGGoal(goal.number)}
-                    className={`p-2 rounded-lg border-2 transition-all text-left ${
-                      (formData.sdg_goals || []).includes(goal.number)
-                        ? `${goal.color} text-white border-transparent shadow-lg`
-                        : 'bg-white border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="font-bold text-sm">Goal {goal.number}</div>
-                    <div className="text-xs">{goal.name}</div>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>
