@@ -1,18 +1,21 @@
-
 import React, { useState, useRef } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { UploadFile } from "@/integrations/Core";
-import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "../LanguageContext";
 
 export default function FieldNoteForm({ note, onSubmit, onCancel }) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState(note || {
     title: "",
     notes: "",
+    description: "",
     date: new Date().toISOString().split('T')[0],
     time: "",
     weather: "",
@@ -20,19 +23,26 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     location_name: "",
     species_observed: [],
     images: [],
-    // impact_notes: "", // This field is being removed as per the outline
+    media_type: "",
+    media_url: "",
+    impact_category: "",
+    tags: [],
     human_impact: "",
     tree_equity_index: ""
   });
   const [newSpecies, setNewSpecies] = useState("");
+  const [newTag, setNewTag] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationError, setLocationError] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(note?.media_url || null);
   const fileInputRef = useRef(null);
+  const mediaInputRef = useRef(null);
 
   const getGPSLocation = () => {
     setGpsLoading(true);
-    setLocationError(null); // Reset error on new attempt
+    setLocationError(null);
 
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by your browser");
@@ -47,7 +57,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         });
-        setLocationError(null); // Clear error on success
+        setLocationError(null);
         setGpsLoading(false);
       },
       (error) => {
@@ -71,11 +81,29 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     );
   };
 
+  const handleMediaSelect = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setMediaFile(selectedFile);
+      
+      let type = "";
+      if (selectedFile.type.startsWith("image/")) type = "image";
+      else if (selectedFile.type.startsWith("video/")) type = "video";
+      else if (selectedFile.type.startsWith("audio/")) type = "audio";
+      
+      setFormData({ ...formData, media_type: type });
+
+      const reader = new FileReader();
+      reader.onloadend = () => setMediaPreview(reader.result);
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     setIsUploading(true);
     
-    const uploadPromises = files.map(file => UploadFile({ file }));
+    const uploadPromises = files.map(file => base44.integrations.Core.UploadFile({ file }));
     const results = await Promise.all(uploadPromises);
     const urls = results.map(r => r.file_url);
     
@@ -106,46 +134,36 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     setFormData({ ...formData, species_observed: newSpecies });
   };
 
-  const toggleSDGGoal = (goalNumber) => {
-    const currentGoals = formData.sdg_goals || [];
-    if (currentGoals.includes(goalNumber)) {
+  const addTag = () => {
+    if (newTag.trim()) {
       setFormData({
         ...formData,
-        sdg_goals: currentGoals.filter(g => g !== goalNumber)
+        tags: [...(formData.tags || []), newTag.trim()]
       });
-    } else {
-      setFormData({
-        ...formData,
-        sdg_goals: [...currentGoals, goalNumber].sort((a, b) => a - b)
-      });
+      setNewTag("");
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const removeTag = (index) => {
+    const newTags = formData.tags.filter((_, i) => i !== index);
+    setFormData({ ...formData, tags: newTags });
   };
 
-  // sdgGoals is no longer used, but kept for consistency if it was intended to be removed only from formData and JSX
-  const sdgGoals = [
-    { number: 1, name: "No Poverty", color: "bg-red-600" },
-    { number: 2, name: "Zero Hunger", color: "bg-yellow-600" },
-    { number: 3, name: "Good Health", color: "bg-green-600" },
-    { number: 4, name: "Quality Education", color: "bg-red-700" },
-    { number: 5, name: "Gender Equality", color: "bg-orange-600" },
-    { number: 6, name: "Clean Water", color: "bg-cyan-600" },
-    { number: 7, name: "Clean Energy", color: "bg-yellow-500" },
-    { number: 8, name: "Decent Work", color: "bg-red-800" },
-    { number: 9, name: "Innovation", color: "bg-orange-700" },
-    { number: 10, name: "Reduced Inequalities", color: "bg-pink-600" },
-    { number: 11, name: "Sustainable Cities", color: "bg-yellow-700" },
-    { number: 12, name: "Responsible Consumption", color: "bg-yellow-800" },
-    { number: 13, name: "Climate Action", color: "bg-green-700" },
-    { number: 14, name: "Life Below Water", color: "bg-blue-600" },
-    { number: 15, name: "Life on Land", color: "bg-green-800" },
-    { number: 16, name: "Peace & Justice", color: "bg-blue-800" },
-    { number: 17, name: "Partnerships", color: "bg-blue-900" }
-  ];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    let finalFormData = { ...formData };
+    
+    // Upload main media if selected
+    if (mediaFile) {
+      setIsUploading(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: mediaFile });
+      finalFormData.media_url = file_url;
+      setIsUploading(false);
+    }
+    
+    onSubmit(finalFormData);
+  };
 
   return (
     <motion.div
@@ -158,11 +176,81 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
         <Card className="border-2 border-amber-200 shadow-2xl">
           <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardTitle className="text-amber-900">
-              {note ? "Edit Field Note" : "New Field Note Entry"}
+              {note ? "Edit Entry" : "New Entry"}
             </CardTitle>
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">
+            {/* Primary Media Upload */}
+            <div>
+              <Label>Primary Media (Photo, Video, or Audio)</Label>
+              <input
+                ref={mediaInputRef}
+                type="file"
+                accept="image/*,video/*,audio/*"
+                onChange={handleMediaSelect}
+                className="hidden"
+              />
+              
+              {!mediaPreview ? (
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-24 flex flex-col gap-2 border-2 border-cyan-500"
+                    onClick={() => mediaInputRef.current?.click()}
+                  >
+                    <Camera className="w-6 h-6" />
+                    <span className="text-sm">Photo</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-24 flex flex-col gap-2 border-2 border-green-500"
+                    onClick={() => mediaInputRef.current?.click()}
+                  >
+                    <Video className="w-6 h-6" />
+                    <span className="text-sm">Video</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-24 flex flex-col gap-2 border-2 border-purple-500"
+                    onClick={() => mediaInputRef.current?.click()}
+                  >
+                    <Mic className="w-6 h-6" />
+                    <span className="text-sm">Audio</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  {formData.media_type === "image" && (
+                    <img src={mediaPreview} alt="Preview" className="w-full rounded-lg" />
+                  )}
+                  {formData.media_type === "video" && (
+                    <video src={mediaPreview} controls className="w-full rounded-lg" />
+                  )}
+                  {formData.media_type === "audio" && (
+                    <div className="p-4 bg-gray-100 rounded-lg">
+                      <audio src={mediaPreview} controls className="w-full" />
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setMediaFile(null);
+                      setMediaPreview(null);
+                      setFormData({ ...formData, media_type: "", media_url: "" });
+                    }}
+                    className="mt-2"
+                  >
+                    Change Media
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="title">Title *</Label>
               <Input
@@ -172,6 +260,18 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Summary of observation"
                 className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Brief Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Quick summary..."
+                className="mt-2"
+                rows={2}
               />
             </div>
 
@@ -200,15 +300,39 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
             </div>
 
             <div>
-              <Label htmlFor="notes">Field Notes *</Label>
+              <Label htmlFor="notes">Detailed Field Notes</Label>
               <Textarea
                 id="notes"
-                required
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Detailed observations, behaviors, conditions..."
                 className="mt-2 min-h-32"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Impact Category</Label>
+              <Select
+                value={formData.impact_category}
+                onValueChange={(value) => setFormData({ ...formData, impact_category: value })}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pollutants_and_waste">Pollutants and Waste</SelectItem>
+                  <SelectItem value="air_quality">Air Quality</SelectItem>
+                  <SelectItem value="deforestation">Deforestation</SelectItem>
+                  <SelectItem value="biodiversity_impacts">Biodiversity Impacts</SelectItem>
+                  <SelectItem value="water_quality">Water Quality</SelectItem>
+                  <SelectItem value="extreme_heat_and_drought_impacts">Extreme Heat and Drought</SelectItem>
+                  <SelectItem value="fires_natural_or_human_caused">Fires</SelectItem>
+                  <SelectItem value="conservation_restoration">Conservation/Restoration</SelectItem>
+                  <SelectItem value="human_disparities_and_inequity">Human Disparities</SelectItem>
+                  <SelectItem value="soundscape">Soundscape</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -304,22 +428,49 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
               )}
             </div>
 
-            {/* The previous 'Human Disparities Related to Climate Change' (impact_notes) field has been removed */}
-            
-            {/* New Human Impact field */}
+            <div>
+              <Label>Tags</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add tag"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                />
+                <Button type="button" onClick={addTag}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {formData.tags && formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {formData.tags.map((tag, idx) => (
+                    <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                      <span>#{tag}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeTag(idx)}
+                        className="hover:bg-blue-200 rounded-full p-1"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="human_impact">Human Impact on Environment</Label>
               <Textarea
                 id="human_impact"
                 value={formData.human_impact}
                 onChange={(e) => setFormData({ ...formData, human_impact: e.target.value })}
-                placeholder="Describe observed human activities and their impact on the environment..."
+                placeholder="Describe observed human activities and their impact..."
                 className="mt-2"
                 rows={3}
               />
             </div>
 
-            {/* New Tree Equity Index field */}
             <div>
               <Label htmlFor="tree_equity">Tree Equity Index Score</Label>
               <div className="flex items-center gap-2 mt-2">
@@ -344,12 +495,12 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                 </a>
               </div>
               <p className="text-xs text-gray-600 mt-1">
-                Tree Equity Score measures how well tree canopy is distributed in relation to income, employment, race, age, and health factors.
+                Tree Equity Score measures tree canopy distribution in relation to income, employment, race, age, and health.
               </p>
             </div>
 
             <div>
-              <Label>Images</Label>
+              <Label>Additional Images</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -373,7 +524,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload Images
+                    Upload Additional Images
                   </>
                 )}
               </Button>
@@ -405,8 +556,8 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
             <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700">
-              {note ? "Update Entry" : "Create Entry"}
+            <Button type="submit" disabled={isUploading} className="flex-1 bg-amber-600 hover:bg-amber-700">
+              {isUploading ? "Uploading..." : note ? "Update Entry" : "Create Entry"}
             </Button>
           </CardFooter>
         </Card>

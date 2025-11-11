@@ -31,8 +31,8 @@ export default function Feed() {
   const queryClient = useQueryClient();
 
   const { data: observations = [], isLoading } = useQuery({
-    queryKey: ['observations'],
-    queryFn: () => base44.entities.Observation.list("-created_date"),
+    queryKey: ['fieldnotes'],
+    queryFn: () => base44.entities.FieldNote.list("-created_date"),
     initialData: []
   });
 
@@ -79,9 +79,9 @@ export default function Feed() {
   }, [observations]);
 
   const updateObservationMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Observation.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.FieldNote.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['observations'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldnotes'] });
       setEditingObservation(null);
       setEditForm({});
     },
@@ -89,9 +89,9 @@ export default function Feed() {
 
   const likeMutation = useMutation({
     mutationFn: ({ id, currentLikes }) =>
-      base44.entities.Observation.update(id, { likes: currentLikes + 1 }),
+      base44.entities.FieldNote.update(id, { likes: currentLikes + 1 }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['observations'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldnotes'] });
     },
   });
 
@@ -150,7 +150,7 @@ export default function Feed() {
 
     const shareUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&quote=${shareText}`,
-      twitter: `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`,
+      twitter: `https://www.twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
       gmail: `https://mail.google.com/mail/?view=cm&fs=1&su=${shareText}&body=${shareBody}`,
       email: `mailto:?subject=${shareText}&body=${shareBody}`
