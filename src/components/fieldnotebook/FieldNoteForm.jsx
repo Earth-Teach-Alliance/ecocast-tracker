@@ -28,6 +28,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     impact_category: "",
     tags: [],
     human_impact: "",
+    climate_change_impacts: "",
     tree_equity_index: ""
   });
   const [newSpecies, setNewSpecies] = useState("");
@@ -468,6 +469,18 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                 placeholder="Describe observed human activities and their impact..."
                 className="mt-2"
                 rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="climate_change_impacts">Observed Impacts of Climate Change on Humans and/or Environment</Label>
+              <Textarea
+                id="climate_change_impacts"
+                value={formData.climate_change_impacts}
+                onChange={(e) => setFormData({ ...formData, climate_change_impacts: e.target.value })}
+                placeholder="Describe any observed impacts of climate change on people or the environment (e.g., extreme weather effects, temperature changes, habitat shifts, health impacts, resource scarcity)..."
+                className="mt-2"
+                rows={4}
               />
             </div>
 

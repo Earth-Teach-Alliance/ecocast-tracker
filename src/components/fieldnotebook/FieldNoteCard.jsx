@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Thermometer, CloudRain, Pencil, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, Thermometer, CloudRain, Pencil, Cloud } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -104,6 +103,16 @@ export default function FieldNoteCard({ note, onEdit }) {
             </div>
           )}
 
+          {note.climate_change_impacts && (
+            <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="flex items-start gap-2 mb-1">
+                <Cloud className="w-4 h-4 text-orange-700 mt-0.5 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-orange-900">Observed Climate Change Impacts</h4>
+              </div>
+              <p className="text-sm text-orange-800">{note.climate_change_impacts}</p>
+            </div>
+          )}
+
           {note.tree_equity_index !== undefined && note.tree_equity_index !== null && (
             <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
               <div className="flex items-center justify-between mb-1">
@@ -136,14 +145,6 @@ export default function FieldNoteCard({ note, onEdit }) {
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-semibold text-blue-900">Proposed Action Plan</h4>
-                <a 
-                  href="https://sdgs.un.org/goals" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                >
-                  UN SDGs <ExternalLink className="w-3 h-3" />
-                </a>
               </div>
               <p className="text-sm text-blue-900 mb-3">{note.action_plan}</p>
               {note.sdg_goals && note.sdg_goals.length > 0 && (
