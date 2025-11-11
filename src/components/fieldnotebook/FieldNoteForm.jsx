@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -26,7 +25,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     city: "",
     state: "",
     country: "",
-    species_observed: [],
     images: [],
     media_type: "",
     media_url: "",
@@ -36,7 +34,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     climate_change_impacts: "",
     tree_equity_index: ""
   });
-  const [newSpecies, setNewSpecies] = useState("");
   const [newTag, setNewTag] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -125,21 +122,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
   const removeImage = (index) => {
     const newImages = formData.images.filter((_, i) => i !== index);
     setFormData({ ...formData, images: newImages });
-  };
-
-  const addSpecies = () => {
-    if (newSpecies.trim()) {
-      setFormData({
-        ...formData,
-        species_observed: [...(formData.species_observed || []), newSpecies.trim()]
-      });
-      setNewSpecies("");
-    }
-  };
-
-  const removeSpecies = (index) => {
-    const newSpecies = formData.species_observed.filter((_, i) => i !== index);
-    setFormData({ ...formData, species_observed: newSpecies });
   };
 
   const addTag = () => {
@@ -481,68 +463,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
             </div>
 
             <div>
-              <Label>Species Observed</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={newSpecies}
-                  onChange={(e) => setNewSpecies(e.target.value)}
-                  placeholder="Add species name"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecies())}
-                />
-                <Button type="button" onClick={addSpecies}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              {formData.species_observed && formData.species_observed.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.species_observed.map((species, idx) => (
-                    <div key={idx} className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                      <span>{species}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSpecies(idx)}
-                        className="hover:bg-green-200 rounded-full p-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <Label>Tags</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Add tag"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                />
-                <Button type="button" onClick={addTag}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              {formData.tags && formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.tags.map((tag, idx) => (
-                    <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                      <span>#{tag}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTag(idx)}
-                        className="hover:bg-blue-200 rounded-full p-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
               <Label htmlFor="human_impact">Human Impact on Environment</Label>
               <Textarea
                 id="human_impact"
@@ -637,6 +557,37 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                         type="button"
                         onClick={() => removeImage(idx)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Tags</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add tag"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                />
+                <Button type="button" onClick={addTag}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {formData.tags && formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {formData.tags.map((tag, idx) => (
+                    <div key={idx} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                      <span>#{tag}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeTag(idx)}
+                        className="hover:bg-blue-200 rounded-full p-1"
                       >
                         <X className="w-3 h-3" />
                       </button>

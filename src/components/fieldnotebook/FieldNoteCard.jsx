@@ -84,19 +84,6 @@ export default function FieldNoteCard({ note, onEdit }) {
 
           <p className="text-gray-700 mb-4 line-clamp-3">{note.notes}</p>
 
-          {note.species_observed && note.species_observed.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Species Observed:</h4>
-              <div className="flex flex-wrap gap-2">
-                {note.species_observed.map((species, idx) => (
-                  <Badge key={idx} className="bg-green-100 text-green-700 border-green-200">
-                    {species}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
           {note.location_name && (
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
               <MapPin className="w-4 h-4 flex-shrink-0" />
