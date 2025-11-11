@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Thermometer, CloudRain, Pencil, Cloud } from "lucide-react";
+import { MapPin, Calendar, Thermometer, CloudRain, Pencil, Cloud, Home } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -14,6 +14,14 @@ export default function FieldNoteCard({ note, onEdit }) {
     13: "bg-green-700", 14: "bg-blue-600", 15: "bg-green-800", 16: "bg-blue-800",
     17: "bg-blue-900"
   };
+
+  // Build full address string
+  const getFullAddress = () => {
+    const parts = [note.address, note.city, note.state, note.country].filter(Boolean);
+    return parts.join(", ");
+  };
+
+  const fullAddress = getFullAddress();
 
   return (
     <motion.div
@@ -90,9 +98,19 @@ export default function FieldNoteCard({ note, onEdit }) {
           )}
 
           {note.location_name && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-              <MapPin className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              <MapPin className="w-4 h-4 flex-shrink-0" />
               <span>{note.location_name}</span>
+            </div>
+          )}
+
+          {fullAddress && (
+            <div className="flex items-start gap-2 text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <Home className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-blue-900 mb-1">Address:</p>
+                <p className="text-blue-800">{fullAddress}</p>
+              </div>
             </div>
           )}
 

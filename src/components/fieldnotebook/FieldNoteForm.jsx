@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic } from "lucide-react";
+import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic, ChevronDown, ChevronUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "../LanguageContext";
 
@@ -21,6 +21,10 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     weather: "",
     temperature: "",
     location_name: "",
+    address: "",
+    city: "",
+    state: "",
+    country: "",
     species_observed: [],
     images: [],
     media_type: "",
@@ -38,6 +42,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
   const [locationError, setLocationError] = useState(null);
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(note?.media_url || null);
+  const [showManualAddress, setShowManualAddress] = useState(false);
   const fileInputRef = useRef(null);
   const mediaInputRef = useRef(null);
 
@@ -65,7 +70,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
         let message = "";
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            message = "Location access denied. You can enter location manually.";
+            message = "Location access denied. You can enter location manually below.";
             break;
           case error.POSITION_UNAVAILABLE:
             message = "Location information unavailable.";
@@ -78,6 +83,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
         }
         setLocationError(message);
         setGpsLoading(false);
+        setShowManualAddress(true);
       }
     );
   };
@@ -395,6 +401,81 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   <AlertCircle className="w-4 h-4" />
                   {locationError}
                 </p>
+              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowManualAddress(!showManualAddress)}
+                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+              >
+                {showManualAddress ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-1" />
+                    Hide Manual Address Entry
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-1" />
+                    Or Enter Address Manually
+                  </>
+                )}
+              </Button>
+
+              {showManualAddress && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200"
+                >
+                  <p className="text-sm text-blue-800 mb-2">
+                    Enter the address details if you're not at the location:
+                  </p>
+                  <div>
+                    <Label htmlFor="address" className="text-sm">Street Address</Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="123 Main Street"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="city" className="text-sm">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder="City"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="state" className="text-sm">State/Province</Label>
+                      <Input
+                        id="state"
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        placeholder="State"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="country" className="text-sm">Country</Label>
+                    <Input
+                      id="country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      placeholder="Country"
+                      className="mt-1"
+                    />
+                  </div>
+                </motion.div>
               )}
             </div>
 
