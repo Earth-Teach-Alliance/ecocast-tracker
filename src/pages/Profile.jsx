@@ -54,26 +54,25 @@ export default function Profile() {
       setUser(currentUser);
       setEditName(currentUser.full_name || "");
 
-      const observations = await base44.entities.Observation.filter({ created_by: currentUser.email });
       const fieldNotes = await base44.entities.FieldNote.filter({ created_by: currentUser.email });
 
       const uniqueLocations = new Set(
-        observations.
-        filter((obs) => obs.latitude && obs.longitude).
-        map((obs) => `${obs.latitude},${obs.longitude}`)
+        fieldNotes
+          .filter((note) => note.latitude && note.longitude)
+          .map((note) => `${note.latitude},${note.longitude}`)
       );
 
       setStats({
-        observations: observations.length,
+        observations: fieldNotes.length, // Renamed 'observations' to 'fieldNotes' count
         fieldNotes: fieldNotes.length,
         locations: uniqueLocations.size
       });
 
       const combined = [
-        ...observations.map((o) => ({ ...o, type: 'observation', title: o.title || `Observation ${o.id}` })), // Ensure title exists
-        ...fieldNotes.map((n) => ({ ...n, type: 'note', title: n.title || `Field Note ${n.id}` })) // Ensure title exists
-      ].
-      sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 5);
+        ...fieldNotes.map((n) => ({ ...n, type: 'note', title: n.title || `Field Note ${n.id}` }))
+      ]
+        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+        .slice(0, 5);
 
       setRecentActivity(combined);
     } catch (error) {
@@ -82,14 +81,7 @@ export default function Profile() {
     setIsLoading(false);
   };
 
-  const deleteObservationMutation = useMutation({
-    mutationFn: (id) => base44.entities.Observation.delete(id),
-    onSuccess: () => {
-      loadProfile();
-      setDeleteItem(null);
-    },
-  });
-
+  // Removed deleteObservationMutation as per outline
   const deleteFieldNoteMutation = useMutation({
     mutationFn: (id) => base44.entities.FieldNote.delete(id),
     onSuccess: () => {
@@ -99,21 +91,13 @@ export default function Profile() {
   });
 
   const handleDelete = (item) => {
-    if (item.type === 'observation') {
-      deleteObservationMutation.mutate(item.id);
-    } else {
-      deleteFieldNoteMutation.mutate(item.id);
-    }
+    // Simplified to only handle field note deletion
+    deleteFieldNoteMutation.mutate(item.id);
   };
 
   const handleEdit = (item) => {
-    if (item.type === 'observation') {
-      // Navigate to feed with the observation ID for potential scrolling/editing
-      navigate(createPageUrl("Feed"), { state: { editObservationId: item.id } });
-    } else {
-      // Navigate to field notebook with the note ID for editing
-      navigate(createPageUrl("FieldNotebook"), { state: { editFieldNoteId: item.id } });
-    }
+    // Simplified to only navigate to FieldNotebook
+    navigate(createPageUrl("FieldNotebook"), { state: { editFieldNoteId: item.id } });
   };
 
   const handleImageUpload = async (e) => {
@@ -197,9 +181,9 @@ export default function Profile() {
         <Card className="border-2 border-cyan-900/50 shadow-xl shadow-cyan-500/20 mb-8 overflow-hidden bg-gradient-to-br from-[#1b263b] to-[#0d1b2a]">
           <div className="relative h-32 bg-gradient-to-r from-green-800 to-cyan-900 group">
             {user?.profile_header_image && (
-              <img 
-                src={user.profile_header_image} 
-                alt="Profile header" 
+              <img
+                src={user.profile_header_image}
+                alt="Profile header"
                 className="w-full h-full object-cover"
               />
             )}
@@ -360,25 +344,8 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Link to={createPageUrl("Feed")} className="block">
-            <Card className="border-2 border-cyan-500/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-cyan-900 to-blue-900">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-cyan-100">
-                  <Camera className="w-5 h-5" />
-                  Observations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-cyan-300">{stats.observations}</p>
-                <p className="text-sm text-cyan-200 mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Reports submitted
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
+        {/* Changed grid layout to 2 columns and updated the first card to reflect Field Notes instead of Observations */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Link to={createPageUrl("FieldNotebook")} className="block">
             <Card className="border-2 border-amber-500/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer bg-gradient-to-br from-amber-900 to-orange-900">
               <CardHeader className="pb-3">
@@ -424,14 +391,9 @@ export default function Profile() {
             <div className="space-y-4">
               {recentActivity.map((item) => (
                 <div key={item.id} className="flex items-start gap-4 p-4 rounded-lg hover:bg-cyan-900/20 transition-colors">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    item.type === 'observation' ? 'bg-cyan-900' : 'bg-amber-900'
-                  }`}>
-                    {item.type === 'observation' ? (
-                      <Camera className="w-5 h-5 text-cyan-300" />
-                    ) : (
-                      <FileText className="w-5 h-5 text-amber-300" />
-                    )}
+                  {/* Simplified icon and background as only Field Notes are displayed */}
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-900">
+                    <FileText className="w-5 h-5 text-amber-300" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-white">{item.title}</h4>
@@ -444,8 +406,9 @@ export default function Profile() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs border-cyan-700 text-cyan-300">
-                      {item.type === 'observation' ? 'Observation' : 'Field Note'}
+                    {/* Simplified badge text and color */}
+                    <Badge variant="outline" className="text-xs border-amber-700 text-amber-300">
+                      Field Note
                     </Badge>
                     <Button
                       variant="ghost"
@@ -478,9 +441,10 @@ export default function Profile() {
       <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
         <AlertDialogContent className="bg-[#1b263b] border-cyan-900/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete {deleteItem?.type === 'observation' ? 'Observation' : 'Field Note'}?</AlertDialogTitle>
+            {/* Updated AlertDialogTitle to refer only to Field Note */}
+            <AlertDialogTitle className="text-white">Delete Field Note?</AlertDialogTitle>
             <AlertDialogDescription className="text-cyan-300">
-              Are you sure you want to delete "{deleteItem?.title}"? This action cannot be undone.
+              Are you sure you want to delete this Field Note "{deleteItem?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -37,19 +37,14 @@ function LayoutContent({ children, currentPageName }) {
     icon: Home
   },
   {
-    title: t("upload"),
-    url: createPageUrl("Upload"),
-    icon: Upload
+    title: t("fieldNotebook"),
+    url: createPageUrl("FieldNotebook"),
+    icon: BookOpen
   },
   {
     title: t("map"),
     url: createPageUrl("Map"),
     icon: Map
-  },
-  {
-    title: t("fieldNotebook"),
-    url: createPageUrl("FieldNotebook"),
-    icon: BookOpen
   },
   {
     title: t("trendsAnalyst"),

@@ -543,7 +543,7 @@ export default function Feed() {
               </div>
               <h3 className="2xl font-semibold text-white mb-2">{t("noReportsYet")}</h3>
               <p className="text-cyan-300 mb-6">{t("beFirst")}</p>
-              <Link to={createPageUrl("Upload")}>
+              <Link to={createPageUrl("FieldNotebook")}>
                 <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
                   {t("uploadFirstReport")}
                 </Button>

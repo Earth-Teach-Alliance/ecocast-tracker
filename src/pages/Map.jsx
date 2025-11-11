@@ -21,8 +21,8 @@ export default function MapPage() {
   const [center, setCenter] = useState([0, 0]);
 
   const { data: observations = [], isLoading } = useQuery({
-    queryKey: ['observations'],
-    queryFn: () => base44.entities.Observation.list(),
+    queryKey: ['fieldnotes'],
+    queryFn: () => base44.entities.FieldNote.list(),
     initialData: [],
   });
 
@@ -34,14 +34,16 @@ export default function MapPage() {
   }, [observations]);
 
   const categoryColors = {
-    pollution: "bg-red-500",
+    pollutants_and_waste: "bg-red-500",
+    air_quality: "bg-sky-500",
     deforestation: "bg-orange-500",
-    wildlife: "bg-green-500",
+    biodiversity_impacts: "bg-green-500",
     water_quality: "bg-blue-500",
-    climate_change: "bg-purple-500",
-    habitat_loss: "bg-yellow-500",
-    conservation: "bg-emerald-500",
-    restoration: "bg-teal-500",
+    extreme_heat_and_drought_impacts: "bg-rose-500",
+    fires_natural_or_human_caused: "bg-orange-600",
+    conservation_restoration: "bg-emerald-500",
+    human_disparities_and_inequity: "bg-violet-500",
+    soundscape: "bg-indigo-500",
     other: "bg-gray-500"
   };
 
@@ -92,7 +94,7 @@ export default function MapPage() {
             >
               <Popup maxWidth={300}>
                 <Card className="border-none shadow-none">
-                  {obs.media_type === "image" && (
+                  {obs.media_type === "image" && obs.media_url && (
                     <img
                       src={obs.media_url}
                       alt={obs.title}
@@ -101,13 +103,15 @@ export default function MapPage() {
                   )}
                   <div className="p-3">
                     <h3 className="font-bold text-lg mb-2">{obs.title}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{obs.description}</p>
+                    {obs.description && <p className="text-sm text-gray-600 mb-3">{obs.description}</p>}
                     
                     <div className="flex items-center gap-2 flex-wrap mb-3">
-                      <Badge className="bg-gray-100 text-gray-700 border-0">
-                        {getMediaIcon(obs.media_type)}
-                        <span className="ml-1">{obs.media_type}</span>
-                      </Badge>
+                      {obs.media_type && (
+                        <Badge className="bg-gray-100 text-gray-700 border-0">
+                          {getMediaIcon(obs.media_type)}
+                          <span className="ml-1">{obs.media_type}</span>
+                        </Badge>
+                      )}
                       
                       {obs.impact_category && (
                         <Badge className={`${categoryColors[obs.impact_category]} text-white border-0`}>
