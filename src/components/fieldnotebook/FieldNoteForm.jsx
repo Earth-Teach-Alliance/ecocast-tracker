@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -32,7 +33,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     tags: [],
     human_impact: "",
     climate_change_impacts: "",
-    tree_equity_index: ""
+    tree_equity_index: null // Changed from "" to null
   });
   const [newTag, setNewTag] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -182,6 +183,11 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: mediaFile });
       finalFormData.media_url = file_url;
       setIsUploading(false);
+    }
+    
+    // Clean up tree_equity_index - convert empty string to null
+    if (finalFormData.tree_equity_index === "" || finalFormData.tree_equity_index === undefined) {
+      finalFormData.tree_equity_index = null;
     }
     
     onSubmit(finalFormData);
@@ -520,8 +526,11 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   min="0"
                   max="100"
                   step="1"
-                  value={formData.tree_equity_index}
-                  onChange={(e) => setFormData({ ...formData, tree_equity_index: e.target.value ? parseFloat(e.target.value) : "" })}
+                  value={formData.tree_equity_index === null ? "" : formData.tree_equity_index} // Modified value prop
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    tree_equity_index: e.target.value ? parseFloat(e.target.value) : null // Modified onChange prop
+                  })}
                   placeholder="Enter score (0-100)"
                   className="flex-1"
                 />
