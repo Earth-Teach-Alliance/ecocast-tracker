@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -186,8 +187,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-24 flex flex-col gap-2 border-2 border-cyan-500"
+                    className="h-24 flex flex-col gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0"
                     onClick={() => mediaInputRef.current?.click()}
                   >
                     <Camera className="w-6 h-6" />
@@ -195,8 +195,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-24 flex flex-col gap-2 border-2 border-green-500"
+                    className="h-24 flex flex-col gap-2 bg-green-600 hover:bg-green-700 text-white border-0"
                     onClick={() => mediaInputRef.current?.click()}
                   >
                     <Video className="w-6 h-6" />
@@ -204,8 +203,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-24 flex flex-col gap-2 border-2 border-purple-500"
+                    className="h-24 flex flex-col gap-2 bg-purple-600 hover:bg-purple-700 text-white border-0"
                     onClick={() => mediaInputRef.current?.click()}
                   >
                     <Mic className="w-6 h-6" />
