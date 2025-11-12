@@ -52,7 +52,7 @@ export default function FieldNotebook() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">Digital Field Notebook</h1>
+            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">EcoCast Field Notes</h1>
             <p className="text-lg text-cyan-300">Document your detailed observations and findings. You can leave blank anything that doesn't apply.</p>
           </div>
           <Button
