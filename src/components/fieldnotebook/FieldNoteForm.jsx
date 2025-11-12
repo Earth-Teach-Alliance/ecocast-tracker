@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic, ChevronDown, ChevronUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "../LanguageContext";
@@ -29,7 +28,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     images: [],
     media_type: "",
     media_url: "",
-    impact_category: "",
+    impact_categories: [],
     tags: [],
     human_impact: "",
     climate_change_impacts: "",
@@ -44,6 +43,21 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
   const [showManualAddress, setShowManualAddress] = useState(false);
   const fileInputRef = useRef(null);
   const mediaInputRef = useRef(null);
+
+  const impactCategoryOptions = [
+    { value: "plastics_and_trash", label: "Plastics and Trash" },
+    { value: "pollutants_and_waste", label: "Pollutants and Waste" },
+    { value: "air_quality", label: "Air Quality" },
+    { value: "deforestation", label: "Deforestation" },
+    { value: "biodiversity_impacts", label: "Biodiversity Impacts" },
+    { value: "water_quality", label: "Water Quality" },
+    { value: "extreme_heat_and_drought_impacts", label: "Extreme Heat and Drought" },
+    { value: "fires_natural_or_human_caused", label: "Fires" },
+    { value: "conservation_restoration", label: "Conservation/Restoration" },
+    { value: "human_disparities_and_inequity", label: "Human Disparities" },
+    { value: "soundscape", label: "Soundscape" },
+    { value: "other", label: "Other" }
+  ];
 
   const getGPSLocation = () => {
     setGpsLoading(true);
@@ -138,6 +152,23 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
   const removeTag = (index) => {
     const newTags = formData.tags.filter((_, i) => i !== index);
     setFormData({ ...formData, tags: newTags });
+  };
+
+  const toggleCategory = (category) => {
+    const currentCategories = formData.impact_categories || [];
+    const isSelected = currentCategories.includes(category);
+    
+    if (isSelected) {
+      setFormData({
+        ...formData,
+        impact_categories: currentCategories.filter(c => c !== category)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        impact_categories: [...currentCategories, category]
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -299,28 +330,24 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
             </div>
 
             <div>
-              <Label htmlFor="category">Impact Category</Label>
-              <Select
-                value={formData.impact_category}
-                onValueChange={(value) => setFormData({ ...formData, impact_category: value })}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pollutants_and_waste">Pollutants and Waste</SelectItem>
-                  <SelectItem value="air_quality">Air Quality</SelectItem>
-                  <SelectItem value="deforestation">Deforestation</SelectItem>
-                  <SelectItem value="biodiversity_impacts">Biodiversity Impacts</SelectItem>
-                  <SelectItem value="water_quality">Water Quality</SelectItem>
-                  <SelectItem value="extreme_heat_and_drought_impacts">Extreme Heat and Drought</SelectItem>
-                  <SelectItem value="fires_natural_or_human_caused">Fires</SelectItem>
-                  <SelectItem value="conservation_restoration">Conservation/Restoration</SelectItem>
-                  <SelectItem value="human_disparities_and_inequity">Human Disparities</SelectItem>
-                  <SelectItem value="soundscape">Soundscape</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Impact Categories (Select all that apply)</Label>
+              <div className="grid md:grid-cols-2 gap-3 mt-2">
+                {impactCategoryOptions.map((option) => (
+                  <div key={option.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={option.value}
+                      checked={(formData.impact_categories || []).includes(option.value)}
+                      onCheckedChange={() => toggleCategory(option.value)}
+                    />
+                    <label
+                      htmlFor={option.value}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ export default function MapPage() {
   }, [observations]);
 
   const categoryColors = {
+    plastics_and_trash: "bg-pink-500",
     pollutants_and_waste: "bg-red-500",
     air_quality: "bg-sky-500",
     deforestation: "bg-orange-500",
@@ -45,6 +47,21 @@ export default function MapPage() {
     human_disparities_and_inequity: "bg-violet-500",
     soundscape: "bg-indigo-500",
     other: "bg-gray-500"
+  };
+
+  const categoryLabels = {
+    plastics_and_trash: "Plastics & Trash",
+    pollutants_and_waste: "Pollutants & Waste",
+    air_quality: "Air Quality",
+    deforestation: "Deforestation",
+    biodiversity_impacts: "Biodiversity",
+    water_quality: "Water Quality",
+    extreme_heat_and_drought_impacts: "Heat & Drought",
+    fires_natural_or_human_caused: "Fires",
+    conservation_restoration: "Conservation",
+    human_disparities_and_inequity: "Human Disparities",
+    soundscape: "Soundscape",
+    other: "Other"
   };
 
   const getMediaIcon = (type) => {
@@ -87,58 +104,62 @@ export default function MapPage() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           
-          {observationsWithCoords.map((obs) => (
-            <Marker
-              key={obs.id}
-              position={[obs.latitude, obs.longitude]}
-            >
-              <Popup maxWidth={300}>
-                <Card className="border-none shadow-none">
-                  {obs.media_type === "image" && obs.media_url && (
-                    <img
-                      src={obs.media_url}
-                      alt={obs.title}
-                      className="w-full h-32 object-cover rounded-t-lg"
-                    />
-                  )}
-                  <div className="p-3">
-                    <h3 className="font-bold text-lg mb-2">{obs.title}</h3>
-                    {obs.description && <p className="text-sm text-gray-600 mb-3">{obs.description}</p>}
-                    
-                    <div className="flex items-center gap-2 flex-wrap mb-3">
-                      {obs.media_type && (
-                        <Badge className="bg-gray-100 text-gray-700 border-0">
-                          {getMediaIcon(obs.media_type)}
-                          <span className="ml-1">{obs.media_type}</span>
-                        </Badge>
-                      )}
-                      
-                      {obs.impact_category && (
-                        <Badge className={`${categoryColors[obs.impact_category]} text-white border-0`}>
-                          {obs.impact_category.replace(/_/g, ' ')}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {obs.location_name && (
-                      <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {obs.location_name}
-                      </p>
+          {observationsWithCoords.map((obs) => {
+            const categories = obs.impact_categories || [];
+            
+            return (
+              <Marker
+                key={obs.id}
+                position={[obs.latitude, obs.longitude]}
+              >
+                <Popup maxWidth={300}>
+                  <Card className="border-none shadow-none">
+                    {obs.media_type === "image" && obs.media_url && (
+                      <img
+                        src={obs.media_url}
+                        alt={obs.title}
+                        className="w-full h-32 object-cover rounded-t-lg"
+                      />
                     )}
+                    <div className="p-3">
+                      <h3 className="font-bold text-lg mb-2">{obs.title}</h3>
+                      {obs.description && <p className="text-sm text-gray-600 mb-3">{obs.description}</p>}
+                      
+                      <div className="flex items-center gap-2 flex-wrap mb-3">
+                        {obs.media_type && (
+                          <Badge className="bg-gray-100 text-gray-700 border-0">
+                            {getMediaIcon(obs.media_type)}
+                            <span className="ml-1">{obs.media_type}</span>
+                          </Badge>
+                        )}
+                        
+                        {categories.map((category) => (
+                          <Badge key={category} className={`${categoryColors[category]} text-white border-0`}>
+                            {categoryLabels[category] || category}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      {obs.location_name && (
+                        <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {obs.location_name}
+                        </p>
+                      )}
 
-                    <Link 
-                      to={createPageUrl("Profile")}
-                      className="text-xs text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1 mt-2"
-                    >
-                      <User className="w-3 h-3" />
-                      View {obs.created_by}'s profile
-                    </Link>
-                  </div>
-                </Card>
-              </Popup>
-            </Marker>
-          ))}
+                      <Link 
+                        to={createPageUrl("Profile")}
+                        className="text-xs text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1 mt-2"
+                      >
+                        <User className="w-3 h-3" />
+                        View {obs.created_by}'s profile
+                      </Link>
+                    </div>
+                  </Card>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
 
         {observationsWithCoords.length === 0 && (

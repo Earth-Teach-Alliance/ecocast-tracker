@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,19 +44,14 @@ export default function Feed() {
 
   useEffect(() => {
     if (observations.length > 0) {
-      const categoryCounts = observations.reduce((acc, obs) => {
-        let processedCategory = obs.impact_category;
-        // Combine conservation and restoration into a single category for analysis
-        if (processedCategory === 'conservation' || processedCategory === 'restoration') {
-          processedCategory = 'conservation_restoration';
-        } else if (processedCategory === 'wildlife' || processedCategory === 'habitat_loss') {
-          processedCategory = 'biodiversity_impacts'; // Combine wildlife and habitat loss
-        }
-        if (processedCategory) {
-          acc[processedCategory] = (acc[processedCategory] || 0) + 1;
-        }
-        return acc;
-      }, {});
+      // Count all categories (handling multiple categories per observation)
+      const categoryCounts = {};
+      observations.forEach(obs => {
+        const categories = obs.impact_categories || [];
+        categories.forEach(cat => {
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+      });
 
       let mostCommonCategory = null;
       let maxCount = 0;
@@ -167,6 +163,7 @@ export default function Feed() {
   };
 
   const categoryColors = {
+    plastics_and_trash: "bg-pink-900 text-pink-300",
     pollutants_and_waste: "bg-red-900 text-red-300",
     air_quality: "bg-sky-900 text-sky-300",
     deforestation: "bg-orange-900 text-orange-300",
@@ -178,6 +175,21 @@ export default function Feed() {
     human_disparities_and_inequity: "bg-violet-900 text-violet-300",
     soundscape: "bg-indigo-900 text-indigo-300",
     other: "bg-gray-900 text-gray-300"
+  };
+
+  const categoryLabels = {
+    plastics_and_trash: "Plastics & Trash",
+    pollutants_and_waste: "Pollutants & Waste",
+    air_quality: "Air Quality",
+    deforestation: "Deforestation",
+    biodiversity_impacts: "Biodiversity",
+    water_quality: "Water Quality",
+    extreme_heat_and_drought_impacts: "Heat & Drought",
+    fires_natural_or_human_caused: "Fires",
+    conservation_restoration: "Conservation",
+    human_disparities_and_inequity: "Human Disparities",
+    soundscape: "Soundscape",
+    other: "Other"
   };
 
   if (isLoading) {
@@ -225,9 +237,9 @@ export default function Feed() {
                   <div>
                     <p className="font-semibold text-cyan-200">{t("mostReported")}:</p>
                     <Badge className={`${categoryColors[analysis.mostCommonCategory]} border-0 font-semibold text-lg py-1 px-3`}>
-                      {t(analysis.mostCommonCategory.replace(/_/g, ''))}
+                      {categoryLabels[analysis.mostCommonCategory] || analysis.mostCommonCategory}
                     </Badge>
-                    <span className="ml-2 text-cyan-300 text-sm">({analysis.mostCommonCategoryCount} {t("observations").toLowerCase()})</span>
+                    <span className="ml-2 text-cyan-300 text-sm">({analysis.mostCommonCategoryCount} reports)</span>
                   </div>
                 )}
               </div>
@@ -237,7 +249,7 @@ export default function Feed() {
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(analysis.categoryCounts).map(([cat, count]) => (
                       <Badge key={cat} className={`${categoryColors[cat]} border-0 text-sm`}>
-                        {t(cat.replace(/_/g, ''))} ({count})
+                        {categoryLabels[cat] || cat} ({count})
                       </Badge>
                     ))}
                   </div>
@@ -250,23 +262,9 @@ export default function Feed() {
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
             {observations.map((obs) => {
-              let currentCategoryKey = obs.impact_category;
-              let displayBadgeText = obs.impact_category ? obs.impact_category.replace(/_/g, ' ') : '';
-              let resolvedColorClass = categoryColors.other;
-
-              if (currentCategoryKey) {
-                if (currentCategoryKey === 'conservation' || currentCategoryKey === 'restoration') {
-                  currentCategoryKey = 'conservation_restoration';
-                  displayBadgeText = t('conservationrestoration') || 'Conservation Restoration';
-                } else if (currentCategoryKey === 'wildlife' || currentCategoryKey === 'habitat_loss') {
-                  currentCategoryKey = 'biodiversity_impacts';
-                  displayBadgeText = t('biodiversityimpacts') || 'Biodiversity Impacts';
-                }
-                resolvedColorClass = categoryColors[currentCategoryKey] || categoryColors.other;
-              }
-
               const isEditing = editingObservation === obs.id;
               const canEdit = currentUser && obs.created_by === currentUser.email;
+              const categories = obs.impact_categories || [];
 
               return (
                 <motion.div
@@ -417,11 +415,6 @@ export default function Feed() {
                                 {obs.description && <p className="text-cyan-200 break-words">{obs.description}</p>}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0 self-start">
-                                {obs.impact_category && (
-                                  <Badge className={`${resolvedColorClass} border-0 font-semibold text-xs sm:text-sm`}>
-                                    {displayBadgeText}
-                                  </Badge>
-                                )}
                                 {canEdit && (
                                   <Button
                                     variant="ghost"
@@ -436,6 +429,18 @@ export default function Feed() {
                               </div>
                             </div>
                           </div>
+
+                          {categories.length > 0 && (
+                            <div className="mb-4">
+                              <div className="flex flex-wrap gap-2">
+                                {categories.map((category) => (
+                                  <Badge key={category} className={`${categoryColors[category] || categoryColors.other} border-0 font-semibold text-xs sm:text-sm`}>
+                                    {categoryLabels[category] || category.replace(/_/g, ' ')}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           <div className="flex flex-wrap gap-4 text-sm text-cyan-300 mb-4">
                             <Link

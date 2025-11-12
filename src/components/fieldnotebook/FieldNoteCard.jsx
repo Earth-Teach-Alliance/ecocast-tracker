@@ -15,6 +15,36 @@ export default function FieldNoteCard({ note, onEdit }) {
     17: "bg-blue-900"
   };
 
+  const categoryColors = {
+    plastics_and_trash: "bg-pink-600 text-white",
+    pollutants_and_waste: "bg-red-600 text-white",
+    air_quality: "bg-sky-600 text-white",
+    deforestation: "bg-orange-600 text-white",
+    biodiversity_impacts: "bg-green-600 text-white",
+    water_quality: "bg-blue-600 text-white",
+    extreme_heat_and_drought_impacts: "bg-rose-600 text-white",
+    fires_natural_or_human_caused: "bg-orange-700 text-white",
+    conservation_restoration: "bg-emerald-600 text-white",
+    human_disparities_and_inequity: "bg-violet-600 text-white",
+    soundscape: "bg-indigo-600 text-white",
+    other: "bg-gray-600 text-white"
+  };
+
+  const categoryLabels = {
+    plastics_and_trash: "Plastics & Trash",
+    pollutants_and_waste: "Pollutants & Waste",
+    air_quality: "Air Quality",
+    deforestation: "Deforestation",
+    biodiversity_impacts: "Biodiversity",
+    water_quality: "Water Quality",
+    extreme_heat_and_drought_impacts: "Heat & Drought",
+    fires_natural_or_human_caused: "Fires",
+    conservation_restoration: "Conservation",
+    human_disparities_and_inequity: "Human Disparities",
+    soundscape: "Soundscape",
+    other: "Other"
+  };
+
   // Build full address string
   const getFullAddress = () => {
     const parts = [note.address, note.city, note.state, note.country].filter(Boolean);
@@ -83,6 +113,18 @@ export default function FieldNoteCard({ note, onEdit }) {
           </div>
 
           <p className="text-gray-700 mb-4 line-clamp-3">{note.notes}</p>
+
+          {note.impact_categories && note.impact_categories.length > 0 && (
+            <div className="mb-4">
+              <div className="flex flex-wrap gap-2">
+                {note.impact_categories.map((category) => (
+                  <Badge key={category} className={`${categoryColors[category]} border-0`}>
+                    {categoryLabels[category] || category}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {note.location_name && (
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
