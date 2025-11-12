@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -171,7 +170,7 @@ export default function Feed() {
     pollutants_and_waste: "bg-red-900 text-red-300",
     air_quality: "bg-sky-900 text-sky-300",
     deforestation: "bg-orange-900 text-orange-300",
-    biodiversity_impacts: "bg-green-900 text-green-300", // New combined category
+    biodiversity_impacts: "bg-green-900 text-green-300",
     water_quality: "bg-blue-900 text-blue-300",
     extreme_heat_and_drought_impacts: "bg-rose-900 text-rose-300",
     fires_natural_or_human_caused: "bg-orange-800 text-orange-200",
@@ -197,13 +196,13 @@ export default function Feed() {
           <p className="text-lg text-cyan-300">{t("earthReporters")}</p>
         </div>
 
-        {analysis && analysis.totalObservations > 0 &&
+        {analysis && analysis.totalObservations > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mb-8">
-
+            className="mb-8"
+          >
             <Card className="p-6 border-2 border-cyan-900/50 bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] shadow-xl shadow-cyan-500/20">
               <div className="flex items-center gap-4 mb-4">
                 <img
@@ -222,7 +221,7 @@ export default function Feed() {
                   <p className="font-semibold text-cyan-200">{t("totalObservations")}:</p>
                   <p className="text-xl font-bold text-cyan-400">{analysis.totalObservations}</p>
                 </div>
-                {analysis.mostCommonCategory &&
+                {analysis.mostCommonCategory && (
                   <div>
                     <p className="font-semibold text-cyan-200">{t("mostReported")}:</p>
                     <Badge className={`${categoryColors[analysis.mostCommonCategory]} border-0 font-semibold text-lg py-1 px-3`}>
@@ -230,45 +229,43 @@ export default function Feed() {
                     </Badge>
                     <span className="ml-2 text-cyan-300 text-sm">({analysis.mostCommonCategoryCount} {t("observations").toLowerCase()})</span>
                   </div>
-                }
+                )}
               </div>
-              {Object.keys(analysis.categoryCounts).length > 1 &&
+              {Object.keys(analysis.categoryCounts).length > 1 && (
                 <div className="mt-4 pt-4 border-t border-cyan-900/50">
                   <p className="font-semibold mb-2 text-cyan-200">Breakdown by Category:</p>
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(analysis.categoryCounts).map(([cat, count]) =>
+                    {Object.entries(analysis.categoryCounts).map(([cat, count]) => (
                       <Badge key={cat} className={`${categoryColors[cat]} border-0 text-sm`}>
                         {t(cat.replace(/_/g, ''))} ({count})
                       </Badge>
-                    )}
+                    ))}
                   </div>
                 </div>
-              }
+              )}
             </Card>
           </motion.div>
-        }
+        )}
 
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
             {observations.map((obs) => {
               let currentCategoryKey = obs.impact_category;
               let displayBadgeText = obs.impact_category ? obs.impact_category.replace(/_/g, ' ') : '';
-              let resolvedColorClass = categoryColors.other; // Default fallback
+              let resolvedColorClass = categoryColors.other;
 
               if (currentCategoryKey) {
                 if (currentCategoryKey === 'conservation' || currentCategoryKey === 'restoration') {
-                  currentCategoryKey = 'conservation_restoration'; // Use the new combined key for color lookup
+                  currentCategoryKey = 'conservation_restoration';
                   displayBadgeText = t('conservationrestoration') || 'Conservation Restoration';
                 } else if (currentCategoryKey === 'wildlife' || currentCategoryKey === 'habitat_loss') {
-                  currentCategoryKey = 'biodiversity_impacts'; // Use the new combined key for color lookup
+                  currentCategoryKey = 'biodiversity_impacts';
                   displayBadgeText = t('biodiversityimpacts') || 'Biodiversity Impacts';
                 }
-                // Now, use the resolved currentCategoryKey to get the color, or fallback to 'other'
                 resolvedColorClass = categoryColors[currentCategoryKey] || categoryColors.other;
               }
 
               const isEditing = editingObservation === obs.id;
-              // Check if currentUser exists and if their email matches the observation's created_by field
               const canEdit = currentUser && obs.created_by === currentUser.email;
 
               return (
@@ -276,11 +273,11 @@ export default function Feed() {
                   key={obs.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}>
-
+                  exit={{ opacity: 0, y: -20 }}
+                >
                   <Card className="overflow-hidden border-2 border-cyan-900/50 bg-[#152033] shadow-lg hover:shadow-xl transition-all duration-300">
                     <div className="relative">
-                      {obs.media_type === "video" &&
+                      {obs.media_type === "video" && (
                         <div className="relative aspect-video bg-black">
                           <video
                             ref={(el) => videoRefs.current[obs.id] = el}
@@ -288,40 +285,41 @@ export default function Feed() {
                             className="w-full h-full object-cover"
                             loop
                             muted={isMuted}
-                            playsInline />
-
+                            playsInline
+                          />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <Button
                               size="lg"
                               className="w-16 h-16 rounded-full bg-cyan-400/90 hover:bg-cyan-400 text-[#0a1628] shadow-2xl"
-                              onClick={() => togglePlay(obs.id)}>
-
-                              {activeVideo === obs.id ?
-                                <Pause className="w-8 h-8" /> :
+                              onClick={() => togglePlay(obs.id)}
+                            >
+                              {activeVideo === obs.id ? (
+                                <Pause className="w-8 h-8" />
+                              ) : (
                                 <Play className="w-8 h-8 ml-1" />
-                              }
+                              )}
                             </Button>
                           </div>
                           <Button
                             size="icon"
                             variant="ghost"
                             className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white"
-                            onClick={() => setIsMuted(!isMuted)}>
-
+                            onClick={() => setIsMuted(!isMuted)}
+                          >
                             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                           </Button>
                         </div>
-                      }
+                      )}
 
-                      {obs.media_type === "image" &&
+                      {obs.media_type === "image" && (
                         <img
                           src={obs.media_url}
                           alt={obs.title}
-                          className="w-full aspect-video object-cover" />
+                          className="w-full aspect-video object-cover"
+                        />
+                      )}
 
-                      }
-
-                      {obs.media_type === "audio" &&
+                      {obs.media_type === "audio" && (
                         <div className="aspect-video bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] flex items-center justify-center">
                           <div className="text-center text-white">
                             <Volume2 className="w-20 h-20 mx-auto mb-4 text-cyan-400" />
@@ -330,10 +328,24 @@ export default function Feed() {
                           <audio
                             controls
                             src={obs.media_url}
-                            className="absolute bottom-4 left-4 right-4" />
-
+                            className="absolute bottom-4 left-4 right-4"
+                          />
                         </div>
-                      }
+                      )}
+
+                      {/* Additional Images Gallery */}
+                      {obs.images && obs.images.length > 0 && (
+                        <div className={`${obs.media_url ? 'mt-2' : ''} grid gap-2 ${obs.images.length === 1 ? 'grid-cols-1' : obs.images.length === 2 ? 'grid-cols-2' : obs.images.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} p-2 bg-black/20`}>
+                          {obs.images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img}
+                              alt={`${obs.title} - Image ${idx + 1}`}
+                              className={`w-full object-cover rounded-lg ${obs.images.length <= 2 ? 'h-64' : 'h-40'}`}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-6">
@@ -398,7 +410,8 @@ export default function Feed() {
                               <div className="flex-1 min-w-0">
                                 <Link
                                   to={createPageUrl("Profile", obs.created_by)}
-                                  className="hover:text-cyan-400 transition-colors">
+                                  className="hover:text-cyan-400 transition-colors"
+                                >
                                   <h3 className="text-2xl font-bold text-white mb-2 break-words">{obs.title}</h3>
                                 </Link>
                                 {obs.description && <p className="text-cyan-200 break-words">{obs.description}</p>}
@@ -427,7 +440,8 @@ export default function Feed() {
                           <div className="flex flex-wrap gap-4 text-sm text-cyan-300 mb-4">
                             <Link
                               to={createPageUrl("Profile", obs.created_by)}
-                              className="flex items-center gap-2 hover:text-cyan-100 transition-colors">
+                              className="flex items-center gap-2 hover:text-cyan-100 transition-colors"
+                            >
                               <UserIcon className="w-4 h-4 flex-shrink-0" />
                               <span className="break-all">{obs.created_by}</span>
                             </Link>
@@ -435,23 +449,23 @@ export default function Feed() {
                               <Clock className="w-4 h-4 flex-shrink-0" />
                               <span>{format(new Date(obs.created_date), "MMM d, yyyy")}</span>
                             </div>
-                            {obs.location_name &&
+                            {obs.location_name && (
                               <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4 flex-shrink-0" />
                                 <span className="break-words">{obs.location_name}</span>
                               </div>
-                            }
+                            )}
                           </div>
 
-                          {obs.tags && obs.tags.length > 0 &&
+                          {obs.tags && obs.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-4">
-                              {obs.tags.map((tag, idx) =>
+                              {obs.tags.map((tag, idx) => (
                                 <Badge key={idx} variant="outline" className="bg-cyan-900/50 text-cyan-300 border-cyan-800">
                                   #{tag}
                                 </Badge>
-                              )}
+                              ))}
                             </div>
-                          }
+                          )}
                         </>
                       )}
 
@@ -463,7 +477,6 @@ export default function Feed() {
                           className="flex-1 text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100"
                           disabled={isEditing}
                         >
-
                           <Heart className={`w-4 h-4 mr-2 ${obs.likes > 0 ? 'fill-red-500 text-red-500' : ''}`} />
                           Like ({obs.likes || 0})
                         </Button>
@@ -476,7 +489,6 @@ export default function Feed() {
                               className="flex-1 text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100"
                               disabled={isEditing}
                             >
-
                               <Share2 className="w-4 h-4 mr-2" />
                               Share
                             </Button>
@@ -484,48 +496,48 @@ export default function Feed() {
                           <DropdownMenuContent className="bg-[#1b263b] border-cyan-900/50">
                             <DropdownMenuItem
                               onClick={() => handleShare(obs, 'facebook')}
-                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                            >
                               <Share2 className="w-4 h-4 mr-2" />
                               Facebook
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleShare(obs, 'twitter')}
-                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                            >
                               <Share2 className="w-4 h-4 mr-2" />
                               Twitter
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleShare(obs, 'linkedin')}
-                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                            >
                               <Share2 className="w-4 h-4 mr-2" />
                               LinkedIn
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleShare(obs, 'gmail')}
-                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                            >
                               <Mail className="w-4 h-4 mr-2" />
                               Gmail
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleShare(obs, 'email')}
-                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                              className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                            >
                               <Mail className="w-4 h-4 mr-2" />
                               Email
                             </DropdownMenuItem>
-                            {navigator.share &&
+                            {navigator.share && (
                               <DropdownMenuItem
                                 onClick={() => handleShare(obs, 'native')}
-                                className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer">
-
+                                className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
+                              >
                                 <Share2 className="w-4 h-4 mr-2" />
                                 More Options
                               </DropdownMenuItem>
-                            }
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -536,7 +548,7 @@ export default function Feed() {
             })}
           </AnimatePresence>
 
-          {observations.length === 0 &&
+          {observations.length === 0 && (
             <div className="text-center py-16">
               <div className="w-24 h-24 mx-auto mb-6 bg-cyan-900/50 rounded-full flex items-center justify-center">
                 <MapPin className="w-12 h-12 text-cyan-400" />
@@ -549,7 +561,7 @@ export default function Feed() {
                 </Button>
               </Link>
             </div>
-          }
+          )}
         </div>
       </div>
     </div>
