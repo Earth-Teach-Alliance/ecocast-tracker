@@ -176,13 +176,21 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     e.preventDefault();
     
     let finalFormData = { ...formData };
-    
+    let submissionBlockingUpload = false; // Flag to indicate if we're waiting for an upload/geocode
+
     // Upload main media if selected
     if (mediaFile) {
-      setIsUploading(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: mediaFile });
-      finalFormData.media_url = file_url;
-      setIsUploading(false);
+      submissionBlockingUpload = true;
+      setIsUploading(true); // Indicate overall form submission is waiting
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: mediaFile });
+        finalFormData.media_url = file_url;
+      } catch (error) {
+        console.error("Media upload failed:", error);
+        // Optionally handle error more explicitly to user
+      } finally {
+        setIsUploading(false); // Reset upload status after media upload
+      }
     }
     
     // Clean up tree_equity_index - convert empty string to null
@@ -190,6 +198,43 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
       finalFormData.tree_equity_index = null;
     }
     
+    // Geocode address if no GPS coordinates but address info exists
+    if (!finalFormData.latitude && !finalFormData.longitude && (finalFormData.address || finalFormData.city || finalFormData.state || finalFormData.country)) {
+      submissionBlockingUpload = true;
+      setIsUploading(true); // Indicate overall form submission is waiting
+      try {
+        const addressParts = [finalFormData.address, finalFormData.city, finalFormData.state, finalFormData.country].filter(Boolean);
+        const fullAddress = addressParts.join(", ");
+        
+        const geocodeResult = await base44.integrations.Core.InvokeLLM({
+          prompt: `Get the GPS coordinates (latitude and longitude) for this address: ${fullAddress}. Return only the coordinates in JSON format.`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              latitude: { type: "number" },
+              longitude: { type: "number" }
+            }
+          }
+        });
+        
+        if (geocodeResult && typeof geocodeResult.latitude === 'number' && typeof geocodeResult.longitude === 'number') {
+          finalFormData.latitude = geocodeResult.latitude;
+          finalFormData.longitude = geocodeResult.longitude;
+        } else {
+            console.warn("Geocoding returned invalid or no coordinates:", geocodeResult);
+        }
+      } catch (error) {
+        console.error("Geocoding failed:", error);
+        // Continue without coordinates - don't block submission
+      } finally {
+        setIsUploading(false); // Reset upload status after geocoding
+      }
+    }
+    
+    // Only call onSubmit if no blocking uploads are still in progress
+    // If there were blocking uploads, setIsUploading was set to false *after* they completed
+    // So we can just proceed. The initial state of isUploading handles the upload status.
     onSubmit(finalFormData);
   };
 
@@ -396,10 +441,11 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   disabled={gpsLoading}
                 >
                   {gpsLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-4 h-4 mr-2" />
                   )}
+                  {gpsLoading ? "Getting GPS..." : "Get GPS"}
                 </Button>
               </div>
               
@@ -637,7 +683,7 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isUploading} className="flex-1 bg-amber-600 hover:bg-amber-700">
-              {isUploading ? "Uploading..." : note ? "Update Entry" : "Create Entry"}
+              {isUploading ? "Processing..." : note ? "Update Entry" : "Create Entry"}
             </Button>
           </CardFooter>
         </Card>
