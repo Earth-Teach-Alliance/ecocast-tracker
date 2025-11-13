@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -142,7 +141,7 @@ function LayoutContent({ children, currentPageName }) {
             <SidebarTrigger className="hover:bg-cyan-900/30 p-2 rounded-lg transition-colors duration-200 text-cyan-300" />
             <div className="flex items-center gap-2">
               <EarthReporterLogo className="w-8 h-8" />
-              <h1 className="text-lg font-bold text-white">Eco Impact Tracker</h1>
+              <h1 className="text-lg font-bold text-white">EcoCast Tracker</h1>
             </div>
           </div>
         </header>
