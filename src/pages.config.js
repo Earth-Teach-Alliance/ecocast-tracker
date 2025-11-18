@@ -3,7 +3,7 @@ import Map from './pages/Map';
 import FieldNotebook from './pages/FieldNotebook';
 import Profile from './pages/Profile';
 import TrendsAnalyst from './pages/TrendsAnalyst';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -17,5 +17,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Feed",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
