@@ -17,7 +17,11 @@ export default function FieldNotebook() {
   }, []);
 
   const loadNotes = async () => {
-    const data = await base44.entities.FieldNote.list("-created_date");
+    const currentUser = await base44.auth.me();
+    const data = await base44.entities.FieldNote.filter(
+      { created_by: currentUser.email },
+      "-created_date"
+    );
     console.log('FieldNotebook - Loaded notes:', data.length);
     setNotes(data);
     setIsLoading(false);
