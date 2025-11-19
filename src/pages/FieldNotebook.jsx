@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { FieldNote } from "@/entities/FieldNote";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,20 +17,29 @@ export default function FieldNotebook() {
   }, []);
 
   const loadNotes = async () => {
-    const data = await FieldNote.list("-created_date");
+    const data = await base44.entities.FieldNote.list("-created_date");
+    console.log('FieldNotebook - Loaded notes:', data.length);
     setNotes(data);
     setIsLoading(false);
   };
 
   const handleSubmit = async (noteData) => {
-    if (editingNote) {
-      await FieldNote.update(editingNote.id, noteData);
-    } else {
-      await FieldNote.create(noteData);
+    console.log('FieldNotebook - Submitting note data:', noteData);
+    try {
+      if (editingNote) {
+        const result = await base44.entities.FieldNote.update(editingNote.id, noteData);
+        console.log('FieldNotebook - Update result:', result);
+      } else {
+        const result = await base44.entities.FieldNote.create(noteData);
+        console.log('FieldNotebook - Create result:', result);
+      }
+      setShowForm(false);
+      setEditingNote(null);
+      await loadNotes();
+    } catch (error) {
+      console.error('FieldNotebook - Submit error:', error);
+      alert('Failed to save entry: ' + (error.message || 'Unknown error'));
     }
-    setShowForm(false);
-    setEditingNote(null);
-    loadNotes();
   };
 
   const handleEdit = (note) => {
