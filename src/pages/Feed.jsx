@@ -31,10 +31,16 @@ export default function Feed() {
 
   const { data: observations = [], isLoading } = useQuery({
     queryKey: ['fieldnotes'],
-    queryFn: () => base44.entities.FieldNote.list("-created_date"),
+    queryFn: async () => {
+      const result = await base44.entities.FieldNote.list("-created_date");
+      console.log('Feed - Total observations loaded:', result.length);
+      console.log('Feed - Created by users:', [...new Set(result.map(r => r.created_by))]);
+      return result;
+    },
     initialData: [],
     staleTime: 0,
-    cacheTime: 0
+    cacheTime: 0,
+    refetchOnMount: 'always'
   });
 
   const { data: currentUser } = useQuery({
