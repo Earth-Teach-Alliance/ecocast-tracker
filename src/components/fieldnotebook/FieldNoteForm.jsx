@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -198,37 +197,40 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
       finalFormData.tree_equity_index = null;
     }
     
-    // Geocode address if no GPS coordinates but address info exists
-    if (!finalFormData.latitude && !finalFormData.longitude && (finalFormData.address || finalFormData.city || finalFormData.state || finalFormData.country)) {
-      submissionBlockingUpload = true;
-      setIsUploading(true); // Indicate overall form submission is waiting
-      try {
-        const addressParts = [finalFormData.address, finalFormData.city, finalFormData.state, finalFormData.country].filter(Boolean);
-        const fullAddress = addressParts.join(", ");
-        
-        const geocodeResult = await base44.integrations.Core.InvokeLLM({
-          prompt: `Get the GPS coordinates (latitude and longitude) for this address: ${fullAddress}. Return only the coordinates in JSON format.`,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              latitude: { type: "number" },
-              longitude: { type: "number" }
+    // Geocode location_name or address if no GPS coordinates
+    if (!finalFormData.latitude && !finalFormData.longitude) {
+      const locationToGeocode = finalFormData.location_name || 
+        [finalFormData.address, finalFormData.city, finalFormData.state, finalFormData.country].filter(Boolean).join(", ");
+      
+      if (locationToGeocode) {
+        submissionBlockingUpload = true;
+        setIsUploading(true);
+        try {
+          const geocodeResult = await base44.integrations.Core.InvokeLLM({
+            prompt: `Get the precise GPS coordinates (latitude and longitude) for this location: "${locationToGeocode}". Return ONLY the numeric coordinates.`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                latitude: { type: "number" },
+                longitude: { type: "number" }
+              },
+              required: ["latitude", "longitude"]
             }
+          });
+          
+          if (geocodeResult && typeof geocodeResult.latitude === 'number' && typeof geocodeResult.longitude === 'number') {
+            finalFormData.latitude = geocodeResult.latitude;
+            finalFormData.longitude = geocodeResult.longitude;
+            console.log('Geocoded location:', locationToGeocode, 'to coords:', geocodeResult);
+          } else {
+            console.warn("Geocoding returned invalid coordinates:", geocodeResult);
           }
-        });
-        
-        if (geocodeResult && typeof geocodeResult.latitude === 'number' && typeof geocodeResult.longitude === 'number') {
-          finalFormData.latitude = geocodeResult.latitude;
-          finalFormData.longitude = geocodeResult.longitude;
-        } else {
-            console.warn("Geocoding returned invalid or no coordinates:", geocodeResult);
+        } catch (error) {
+          console.error("Geocoding failed:", error);
+        } finally {
+          setIsUploading(false);
         }
-      } catch (error) {
-        console.error("Geocoding failed:", error);
-        // Continue without coordinates - don't block submission
-      } finally {
-        setIsUploading(false); // Reset upload status after geocoding
       }
     }
     
