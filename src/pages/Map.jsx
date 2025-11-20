@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -23,8 +22,21 @@ export default function MapPage() {
 
   const { data: observations = [], isLoading } = useQuery({
     queryKey: ['fieldnotes'],
-    queryFn: () => base44.entities.FieldNote.list(),
+    queryFn: async () => {
+      const result = await base44.entities.FieldNote.list("-created_date");
+      console.log('Map - Total observations:', result.length);
+      console.log('Map - With coordinates:', result.filter(o => o.latitude && o.longitude).length);
+      result.forEach(obs => {
+        if (!obs.latitude || !obs.longitude) {
+          console.log('Map - Missing coords for:', obs.title, '- lat:', obs.latitude, 'lng:', obs.longitude);
+        }
+      });
+      return result;
+    },
     initialData: [],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always'
   });
 
   useEffect(() => {
