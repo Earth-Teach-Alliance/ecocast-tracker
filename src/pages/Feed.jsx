@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Pause, Volume2, VolumeX, MapPin, Clock, User as UserIcon, Heart, Share2, Brain, TrendingUp, Mail, Pencil, X, Check } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, MapPin, Clock, User as UserIcon, Heart, Share2, Brain, TrendingUp, Mail, Pencil, X, Check, Users } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,6 +18,7 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "../components/LanguageContext";
+import CommentSection from "../components/community/CommentSection";
 
 export default function Feed() {
   const { t } = useLanguage();
@@ -26,6 +27,8 @@ export default function Feed() {
   const [isMuted, setIsMuted] = useState(false);
   const [editingObservation, setEditingObservation] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [filterMode, setFilterMode] = useState("all"); // "all" or "following"
+  const [following, setFollowing] = useState([]);
   const videoRefs = useRef({});
   const queryClient = useQueryClient();
 
@@ -48,6 +51,21 @@ export default function Feed() {
     queryFn: () => base44.auth.me(),
     staleTime: Infinity,
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      loadFollowing();
+    }
+  }, [currentUser]);
+
+  const loadFollowing = async () => {
+    const follows = await base44.entities.Follow.filter({ follower_email: currentUser.email });
+    setFollowing(follows.map(f => f.following_email));
+  };
+
+  const filteredObservations = filterMode === "following" 
+    ? observations.filter(obs => following.includes(obs.created_by))
+    : observations;
 
   useEffect(() => {
     if (observations.length > 0) {
@@ -211,8 +229,29 @@ export default function Feed() {
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#1b263b] to-[#0d1b2a]">
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <div className="mb-8">
-          <h1 className="text-neutral-50 mb-2 text-xl font-bold drop-shadow-lg">{t("measuringImpact")}</h1>
-          <p className="text-lg text-cyan-300">{t("earthReporters")}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-neutral-50 mb-2 text-xl font-bold drop-shadow-lg">{t("measuringImpact")}</h1>
+              <p className="text-lg text-cyan-300">{t("earthReporters")}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setFilterMode("all")}
+                variant={filterMode === "all" ? "default" : "outline"}
+                className={filterMode === "all" ? "bg-cyan-600 hover:bg-cyan-700" : "border-cyan-700 text-cyan-300"}
+              >
+                All
+              </Button>
+              <Button
+                onClick={() => setFilterMode("following")}
+                variant={filterMode === "following" ? "default" : "outline"}
+                className={filterMode === "following" ? "bg-cyan-600 hover:bg-cyan-700" : "border-cyan-700 text-cyan-300"}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Following
+              </Button>
+            </div>
+          </div>
         </div>
 
         {analysis && analysis.totalObservations > 0 && (
@@ -268,7 +307,7 @@ export default function Feed() {
 
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
-            {observations.map((obs) => {
+            {filteredObservations.map((obs) => {
               const isEditing = editingObservation === obs.id;
               const canEdit = currentUser && obs.created_by === currentUser.email;
               const categories = obs.impact_categories || [];
@@ -548,12 +587,22 @@ export default function Feed() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
+
+                      <CommentSection fieldNoteId={obs.id} fieldNoteAuthor={obs.created_by} />
                     </div>
                   </Card>
                 </motion.div>
               );
             })}
           </AnimatePresence>
+
+          {filteredObservations.length === 0 && filterMode === "following" && (
+            <div className="text-center py-16">
+              <Users className="w-24 h-24 mx-auto mb-6 text-cyan-400 opacity-50" />
+              <h3 className="text-2xl font-semibold text-white mb-2">No posts from followed users</h3>
+              <p className="text-cyan-300 mb-6">Follow other users to see their posts here</p>
+            </div>
+          )}
 
           {observations.length === 0 && (
             <div className="text-center py-16">

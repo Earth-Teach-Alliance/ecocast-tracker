@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Upload, Map, BookOpen, User, TrendingUp, Languages } from "lucide-react";
+import { Home, Upload, Map, BookOpen, User, TrendingUp, Languages, Mail } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import EarthReporterLogo from "./components/EarthReporterLogo";
 import { LanguageProvider, useLanguage } from "./components/LanguageContext";
+import NotificationDropdown from "./components/community/NotificationDropdown";
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
@@ -49,6 +50,11 @@ function LayoutContent({ children, currentPageName }) {
     title: t("trendsAnalyst"),
     url: createPageUrl("TrendsAnalyst"),
     icon: TrendingUp
+  },
+  {
+    title: "Messages",
+    url: createPageUrl("Messages"),
+    icon: Mail
   },
   {
     title: t("profile"),
@@ -136,13 +142,16 @@ function LayoutContent({ children, currentPageName }) {
       </Sidebar>
 
       <main className="flex-1 flex flex-col">
-        <header className="bg-[#0a1628] backdrop-blur-md border-b border-cyan-900/30 px-6 py-4 md:hidden sticky top-0 z-40 shadow-lg shadow-cyan-500/10">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className="hover:bg-cyan-900/30 p-2 rounded-lg transition-colors duration-200 text-cyan-300" />
-            <div className="flex items-center gap-2">
-              <EarthReporterLogo className="w-8 h-8" />
-              <h1 className="text-lg font-bold text-white">EcoCast Tracker</h1>
+        <header className="bg-[#0a1628] backdrop-blur-md border-b border-cyan-900/30 px-6 py-4 sticky top-0 z-40 shadow-lg shadow-cyan-500/10">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="hover:bg-cyan-900/30 p-2 rounded-lg transition-colors duration-200 text-cyan-300 md:hidden" />
+              <div className="flex items-center gap-2">
+                <EarthReporterLogo className="w-8 h-8 md:hidden" />
+                <h1 className="text-lg font-bold text-white md:hidden">EcoCast Tracker</h1>
+              </div>
             </div>
+            <NotificationDropdown />
           </div>
         </header>
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, FileText, Camera, Award, TrendingUp, LogOut, Pencil, Check, X, Trash2, Share2, Image } from "lucide-react";
+import { MapPin, FileText, Camera, Award, TrendingUp, LogOut, Pencil, Check, X, Trash2, Share2, Image, UserPlus, UserMinus, Mail } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useMutation } from "@tanstack/react-query";
@@ -40,6 +40,9 @@ export default function Profile() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingHeader, setIsUploadingHeader] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const fileInputRef = useRef(null);
   const headerInputRef = useRef(null);
 
@@ -184,6 +187,56 @@ export default function Profile() {
 
   const isOwnProfile = currentUser && user && currentUser.email === user.email;
 
+  const checkFollowStatus = async () => {
+    if (!isOwnProfile && currentUser && user) {
+      const follows = await base44.entities.Follow.filter({
+        follower_email: currentUser.email,
+        following_email: user.email
+      });
+      setIsFollowing(follows.length > 0);
+    }
+  };
+
+  const loadFollowCounts = async () => {
+    if (user) {
+      const followers = await base44.entities.Follow.filter({ following_email: user.email });
+      const following = await base44.entities.Follow.filter({ follower_email: user.email });
+      setFollowerCount(followers.length);
+      setFollowingCount(following.length);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (isFollowing) {
+      const follows = await base44.entities.Follow.filter({
+        follower_email: currentUser.email,
+        following_email: user.email
+      });
+      if (follows.length > 0) {
+        await base44.entities.Follow.delete(follows[0].id);
+      }
+    } else {
+      await base44.entities.Follow.create({
+        follower_email: currentUser.email,
+        following_email: user.email
+      });
+      
+      // Create notification
+      await base44.entities.Notification.create({
+        user_email: user.email,
+        type: "follow",
+        content: `${currentUser.full_name || currentUser.email} started following you`,
+        from_user: currentUser.email
+      });
+    }
+    setIsFollowing(!isFollowing);
+    await loadFollowCounts();
+  };
+
+  const handleSendMessage = () => {
+    navigate(createPageUrl("Messages"));
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1b263b]">
@@ -309,7 +362,17 @@ export default function Profile() {
                     )}
                   </div>
                 )}
-                <p className="text-neutral-50 mb-4 font-bold">Earth Reporter</p>
+                <p className="text-neutral-50 mb-2 font-bold">Earth Reporter</p>
+                <div className="flex gap-4 mb-4 text-sm">
+                  <div>
+                    <span className="text-white font-semibold">{followerCount}</span>
+                    <span className="text-cyan-300 ml-1">Followers</span>
+                  </div>
+                  <div>
+                    <span className="text-white font-semibold">{followingCount}</span>
+                    <span className="text-cyan-300 ml-1">Following</span>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
                     <Award className="w-4 h-4 mr-1" />
@@ -318,6 +381,34 @@ export default function Profile() {
                 </div>
               </div>
               <div className="flex gap-2">
+                {!isOwnProfile && (
+                  <>
+                    <Button
+                      onClick={handleFollow}
+                      className={isFollowing ? "bg-cyan-800 hover:bg-cyan-900" : "bg-cyan-600 hover:bg-cyan-700"}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleSendMessage}
+                      variant="outline"
+                      className="border-cyan-500 text-cyan-300 hover:bg-cyan-900/30"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Message
+                    </Button>
+                  </>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="border-cyan-500 text-cyan-300 hover:bg-cyan-900/30">
