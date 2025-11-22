@@ -28,6 +28,7 @@ import {
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState({
     observations: 0,
     fieldNotes: 0,
@@ -46,9 +47,20 @@ export default function Profile() {
   const fileInputRef = useRef(null);
   const headerInputRef = useRef(null);
 
+  // Get user email from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const profileEmail = urlParams.get('email');
+
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [profileEmail]);
+
+  useEffect(() => {
+    if (user && currentUser) {
+      checkFollowStatus();
+      loadFollowCounts();
+    }
+  }, [user, currentUser]);
 
   const loadProfile = async () => {
     try {
