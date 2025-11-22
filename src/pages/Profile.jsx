@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,11 +49,27 @@ export default function Profile() {
 
   const loadProfile = async () => {
     try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setEditName(currentUser.full_name || "");
+      const loggedInUser = await base44.auth.me();
+      setCurrentUser(loggedInUser);
+      
+      // If email param provided, load that user's data; otherwise load current user
+      const targetEmail = profileEmail || loggedInUser.email;
+      
+      // Load user info - for now we'll use the email as identifier
+      // You can fetch from User entity if needed, but for field notes we just need email
+      let targetUser;
+      if (profileEmail && profileEmail !== loggedInUser.email) {
+        // Viewing another user's profile - try to get their info
+        const users = await base44.entities.User.filter({ email: profileEmail });
+        targetUser = users.length > 0 ? users[0] : { email: profileEmail, full_name: profileEmail };
+      } else {
+        targetUser = loggedInUser;
+      }
+      
+      setUser(targetUser);
+      setEditName(targetUser.full_name || "");
 
-      const fieldNotes = await base44.entities.FieldNote.filter({ created_by: currentUser.email });
+      const fieldNotes = await base44.entities.FieldNote.filter({ created_by: targetEmail });
 
       const uniqueLocations = new Set(
         fieldNotes
@@ -167,6 +182,8 @@ export default function Profile() {
     navigate("/");
   };
 
+  const isOwnProfile = currentUser && user && currentUser.email === user.email;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1b263b]">
@@ -187,18 +204,20 @@ export default function Profile() {
                 className="w-full h-full object-cover"
               />
             )}
-            <input
-              ref={headerInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleHeaderUpload}
-              className="hidden"
-            />
-            <button
-              onClick={() => headerInputRef.current?.click()}
-              disabled={isUploadingHeader}
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-lg px-3 py-2 text-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
+            {isOwnProfile && (
+              <>
+                <input
+                  ref={headerInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleHeaderUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => headerInputRef.current?.click()}
+                  disabled={isUploadingHeader}
+                  className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-lg px-3 py-2 text-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
               {isUploadingHeader ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
@@ -207,7 +226,9 @@ export default function Profile() {
                   Change Header
                 </>
               )}
-            </button>
+              </button>
+              </>
+              )}
           </div>
           <CardContent className="p-8 -mt-16">
             <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-6">
@@ -229,21 +250,23 @@ export default function Profile() {
                   <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-4xl font-bold text-emerald-600 border-4 border-white shadow-xl">
                     {user?.full_name?.charAt(0) || user?.email?.charAt(0) || "U"}
                   </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingImage}
-                  className="absolute bottom-0 right-0 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                >
+                  )}
+                  {isOwnProfile && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="absolute bottom-0 right-0 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                   {isUploadingImage ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <Camera className="w-5 h-5" />
                   )}
-                </button>
+                  </button>
+                  )}
               </div>
               <div className="flex-1">
-                {isEditing ? (
+                {isOwnProfile && isEditing ? (
                   <div className="flex gap-2 mb-2">
                     <Input
                       value={editName}
@@ -274,14 +297,16 @@ export default function Profile() {
                     <h1 className="text-3xl font-bold text-white">
                       {user?.full_name || user?.email}
                     </h1>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setIsEditing(true)}
-                      className="text-cyan-300 hover:text-cyan-100 hover:bg-cyan-900/30"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
+                    {isOwnProfile && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setIsEditing(true)}
+                        className="text-cyan-300 hover:text-cyan-100 hover:bg-cyan-900/30"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 )}
                 <p className="text-neutral-50 mb-4 font-bold">Earth Reporter</p>
@@ -331,14 +356,16 @@ export default function Profile() {
                         className="text-cyan-200 hover:bg-cyan-900/30 hover:text-cyan-100 cursor-pointer"
                       >
                         More Options
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="outline" onClick={handleLogout} className="border-cyan-500 text-cyan-300 hover:bg-cyan-900/30">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+                        </DropdownMenuItem>
+                        )}
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                        {isOwnProfile && (
+                        <Button variant="outline" onClick={handleLogout} className="border-cyan-500 text-cyan-300 hover:bg-cyan-900/30">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                        </Button>
+                        )}
               </div>
             </div>
           </CardContent>
@@ -410,22 +437,26 @@ export default function Profile() {
                     <Badge variant="outline" className="text-xs border-amber-700 text-amber-300">
                       Field Note
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(item)}
-                      className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/30"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteItem(item)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isOwnProfile && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(item)}
+                          className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/30"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteItem(item)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

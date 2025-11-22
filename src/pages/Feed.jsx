@@ -413,12 +413,7 @@ export default function Feed() {
                           <div className="mb-4">
                             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                               <div className="flex-1 min-w-0">
-                                <Link
-                                  to={createPageUrl("Profile", obs.created_by)}
-                                  className="hover:text-cyan-400 transition-colors"
-                                >
-                                  <h3 className="text-2xl font-bold text-white mb-2 break-words">{obs.title}</h3>
-                                </Link>
+                                <h3 className="text-2xl font-bold text-white mb-2 break-words">{obs.title}</h3>
                                 {obs.description && <p className="text-cyan-200 break-words">{obs.description}</p>}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0 self-start">
@@ -451,7 +446,7 @@ export default function Feed() {
 
                           <div className="flex flex-wrap gap-4 text-sm text-cyan-300 mb-4">
                             <Link
-                              to={createPageUrl("Profile", obs.created_by)}
+                              to={`${createPageUrl("Profile")}?email=${encodeURIComponent(obs.created_by)}`}
                               className="flex items-center gap-2 hover:text-cyan-100 transition-colors"
                             >
                               <UserIcon className="w-4 h-4 flex-shrink-0" />
