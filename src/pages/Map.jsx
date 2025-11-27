@@ -160,12 +160,12 @@ export default function MapPage() {
                       )}
 
                       <Link 
-                        to={createPageUrl("Profile")}
-                        className="text-xs text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1 mt-2"
-                      >
-                        <User className="w-3 h-3" />
-                        View {obs.created_by}'s profile
-                      </Link>
+                                                    to={`${createPageUrl("Profile")}?email=${encodeURIComponent(obs.created_by)}`}
+                                                    className="text-xs text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1 mt-2"
+                                                  >
+                                                    <User className="w-3 h-3" />
+                                                    View {obs.created_by}'s profile
+                                                  </Link>
                     </div>
                   </Card>
                 </Popup>
