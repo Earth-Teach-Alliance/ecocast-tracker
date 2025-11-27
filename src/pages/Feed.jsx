@@ -324,13 +324,16 @@ export default function Feed() {
                       {obs.media_type === "video" && (
                         <div className="relative aspect-video bg-black">
                           <video
-                            ref={(el) => videoRefs.current[obs.id] = el}
-                            src={obs.media_url}
-                            className="w-full h-full object-cover"
-                            loop
-                            muted={isMuted}
-                            playsInline
-                          />
+                                                            ref={(el) => videoRefs.current[obs.id] = el}
+                                                            src={obs.media_url}
+                                                            className="w-full h-full object-cover"
+                                                            loop
+                                                            muted={isMuted}
+                                                            playsInline
+                                                            webkit-playsinline="true"
+                                                            controls
+                                                            preload="metadata"
+                                                          />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <Button
                               size="lg"
