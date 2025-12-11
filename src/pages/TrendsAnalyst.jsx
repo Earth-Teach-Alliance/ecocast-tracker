@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { agentSDK } from "@/agents";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +17,31 @@ export default function TrendsAnalyst() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [availableLocations, setAvailableLocations] = useState([]);
   const messagesEndRef = useRef(null);
   const whatsappURL = agentSDK.getWhatsAppConnectURL('trends_analyst');
 
   useEffect(() => {
     loadConversations();
+    loadLocations();
   }, []);
+
+  const loadLocations = async () => {
+    try {
+      const notes = await base44.entities.FieldNote.list();
+      const locations = new Set();
+      
+      notes.forEach(note => {
+        if (note.city) locations.add(note.city);
+        if (note.state) locations.add(note.state);
+        if (note.country) locations.add(note.country);
+      });
+      
+      setAvailableLocations([...locations].sort().slice(0, 8));
+    } catch (error) {
+      console.error("Error loading locations:", error);
+    }
+  };
 
   useEffect(() => {
     if (activeConversation) {
@@ -89,11 +108,12 @@ export default function TrendsAnalyst() {
   };
 
   const suggestedQuestions = [
-  "What are the environmental trends in my area?",
-  "Analyze pollution patterns in coastal regions",
-  "What wildlife changes have been observed recently?",
-  "Predict future deforestation risks based on current data",
-  "Compare water quality trends across different locations"];
+    "What are the environmental trends in my area?",
+    "Analyze pollution patterns in coastal regions",
+    "What wildlife changes have been observed recently?",
+    "Predict future deforestation risks based on current data",
+    "Compare water quality trends across different locations"
+  ];
 
 
   return (
@@ -233,17 +253,36 @@ export default function TrendsAnalyst() {
                           <div className="text-center text-gray-500 mb-6">
                             Ask me about environmental trends in any region
                           </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-semibold text-gray-700">Suggested questions:</p>
-                            {suggestedQuestions.map((question, idx) =>
-                        <button
-                          key={idx}
-                          onClick={() => setInputMessage(question)}
-                          className="w-full text-left p-3 rounded-lg border-2 border-purple-100 hover:bg-purple-50 transition-colors text-sm text-gray-700">
+                          <div className="space-y-4">
+                            {availableLocations.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-sm font-semibold text-gray-700">Analyze specific areas:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {availableLocations.map((location, idx) => (
+                                    <button
+                                      key={`loc-${idx}`}
+                                      onClick={() => setInputMessage(`Analyze environmental trends in ${location}`)}
+                                      className="px-3 py-1.5 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 text-sm font-medium transition-colors border border-purple-200"
+                                    >
+                                      {location}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                                {question}
-                              </button>
-                        )}
+                            <div className="space-y-2">
+                              <p className="text-sm font-semibold text-gray-700">General questions:</p>
+                              {suggestedQuestions.map((question, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setInputMessage(question)}
+                                  className="w-full text-left p-3 rounded-lg border-2 border-purple-100 hover:bg-purple-50 transition-colors text-sm text-gray-700"
+                                >
+                                  {question}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div> :
 
