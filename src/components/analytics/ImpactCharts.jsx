@@ -90,7 +90,6 @@ export default function ImpactCharts({ observations }) {
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: '#1b263b', borderColor: '#0ea5e9', color: '#fff' }} />
-                  <Legend />
                 </PieChart>
              </ResponsiveContainer>
           </TabsContent>
