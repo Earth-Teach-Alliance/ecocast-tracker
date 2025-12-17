@@ -286,15 +286,6 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
         }
       }
     }
-            console.warn("Geocoding returned invalid coordinates:", geocodeResult);
-          }
-        } catch (error) {
-          console.error("Geocoding failed:", error);
-        } finally {
-          setIsUploading(false);
-        }
-      }
-    }
     
     // Only call onSubmit if no blocking uploads are still in progress
     // If there were blocking uploads, setIsUploading was set to false *after* they completed
