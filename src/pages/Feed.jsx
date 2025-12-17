@@ -28,6 +28,7 @@ export default function Feed() {
   const [editingObservation, setEditingObservation] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [filterMode, setFilterMode] = useState("all"); // "all" or "following"
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [following, setFollowing] = useState([]);
   const videoRefs = useRef({});
   const queryClient = useQueryClient();
@@ -63,9 +64,11 @@ export default function Feed() {
     setFollowing(follows.map(f => f.following_email));
   };
 
-  const filteredObservations = filterMode === "following" 
-    ? observations.filter(obs => following.includes(obs.created_by))
-    : observations;
+  const filteredObservations = observations.filter(obs => {
+    const matchesFollowing = filterMode === "all" || following.includes(obs.created_by);
+    const matchesCategory = !selectedCategory || (obs.impact_categories || []).includes(selectedCategory);
+    return matchesFollowing && matchesCategory;
+  });
 
   useEffect(() => {
     if (observations.length > 0) {
@@ -291,10 +294,26 @@ export default function Feed() {
               </div>
               {Object.keys(analysis.categoryCounts).length > 1 && (
                 <div className="mt-4 pt-4 border-t border-cyan-900/50">
-                  <p className="font-semibold mb-2 text-cyan-200">Breakdown by Category:</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="font-semibold text-cyan-200">Breakdown by Category:</p>
+                    {selectedCategory && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSelectedCategory(null)}
+                        className="text-xs text-cyan-400 hover:text-cyan-200 h-6 px-2"
+                      >
+                        <X className="w-3 h-3 mr-1" /> Clear Filter
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(analysis.categoryCounts).map(([cat, count]) => (
-                      <Badge key={cat} className={`${categoryColors[cat]} border-0 text-sm`}>
+                      <Badge 
+                        key={cat} 
+                        className={`${categoryColors[cat]} border-0 text-sm cursor-pointer transition-all hover:opacity-80 ${selectedCategory === cat ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a1628] scale-105' : selectedCategory ? 'opacity-50' : ''}`}
+                        onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                      >
                         {categoryLabels[cat] || cat} ({count})
                       </Badge>
                     ))}
