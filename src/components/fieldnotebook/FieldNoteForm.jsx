@@ -70,14 +70,49 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData({
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Update coords immediately
+        let updatedFormData = {
           ...formData,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        });
+          latitude: lat,
+          longitude: lng
+        };
+        setFormData(updatedFormData);
         setLocationError(null);
-        setGpsLoading(false);
+
+        // Reverse geocode to get address details
+        try {
+          const addressResult = await base44.integrations.Core.InvokeLLM({
+            prompt: `Reverse geocode these coordinates: ${lat}, ${lng}. Return the city, state (or province), and country.`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                city: { type: "string" },
+                state: { type: "string" },
+                country: { type: "string" },
+                address: { type: "string" }
+              }
+            }
+          });
+
+          if (addressResult) {
+            setFormData(prev => ({
+              ...prev,
+              city: addressResult.city || prev.city,
+              state: addressResult.state || prev.state,
+              country: addressResult.country || prev.country,
+              address: addressResult.address || prev.address
+            }));
+          }
+        } catch (error) {
+          console.error("Reverse geocoding failed:", error);
+        } finally {
+          setGpsLoading(false);
+        }
       },
       (error) => {
         let message = "";
@@ -197,33 +232,60 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
       finalFormData.tree_equity_index = null;
     }
     
-    // Geocode location_name or address if no GPS coordinates
-    if (!finalFormData.latitude && !finalFormData.longitude) {
+    // Geocode location_name or address if no GPS coordinates OR if country is missing (populate address data)
+    // We check if we need to enrich the data either with coords or address details
+    const needsCoords = !finalFormData.latitude || !finalFormData.longitude;
+    const needsAddress = !finalFormData.country;
+    
+    if (needsCoords || needsAddress) {
       const locationToGeocode = finalFormData.location_name || 
         [finalFormData.address, finalFormData.city, finalFormData.state, finalFormData.country].filter(Boolean).join(", ");
       
-      if (locationToGeocode) {
+      // If we have coords but no address/location name, we can reverse geocode the coords
+      const prompt = needsCoords && locationToGeocode
+        ? `Get the precise GPS coordinates (latitude, longitude) AND address details (city, state, country) for: "${locationToGeocode}".`
+        : !needsCoords
+          ? `Reverse geocode these coordinates: ${finalFormData.latitude}, ${finalFormData.longitude}. Return city, state, country.`
+          : null;
+
+      if (prompt) {
         submissionBlockingUpload = true;
         setIsUploading(true);
         try {
           const geocodeResult = await base44.integrations.Core.InvokeLLM({
-            prompt: `Get the precise GPS coordinates (latitude and longitude) for this location: "${locationToGeocode}". Return ONLY the numeric coordinates.`,
+            prompt: prompt,
             add_context_from_internet: true,
             response_json_schema: {
               type: "object",
               properties: {
                 latitude: { type: "number" },
-                longitude: { type: "number" }
-              },
-              required: ["latitude", "longitude"]
+                longitude: { type: "number" },
+                city: { type: "string" },
+                state: { type: "string" },
+                country: { type: "string" }
+              }
             }
           });
           
-          if (geocodeResult && typeof geocodeResult.latitude === 'number' && typeof geocodeResult.longitude === 'number') {
-            finalFormData.latitude = geocodeResult.latitude;
-            finalFormData.longitude = geocodeResult.longitude;
-            console.log('Geocoded location:', locationToGeocode, 'to coords:', geocodeResult);
-          } else {
+          if (geocodeResult) {
+            if (needsCoords && typeof geocodeResult.latitude === 'number') {
+              finalFormData.latitude = geocodeResult.latitude;
+              finalFormData.longitude = geocodeResult.longitude;
+            }
+            // Populate missing address fields
+            if (!finalFormData.country && geocodeResult.country) finalFormData.country = geocodeResult.country;
+            if (!finalFormData.state && geocodeResult.state) finalFormData.state = geocodeResult.state;
+            if (!finalFormData.city && geocodeResult.city) finalFormData.city = geocodeResult.city;
+            
+            console.log('Geocoded result:', geocodeResult);
+          }
+        } catch (error) {
+          console.error("Geocoding failed:", error);
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    }
             console.warn("Geocoding returned invalid coordinates:", geocodeResult);
           }
         } catch (error) {
