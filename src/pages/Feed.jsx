@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "../components/LanguageContext";
 import CommentSection from "../components/community/CommentSection";
+import ImpactCharts from "../components/analytics/ImpactCharts";
 
 export default function Feed() {
   const { t } = useLanguage();
@@ -264,6 +265,8 @@ export default function Feed() {
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
+            <ImpactCharts observations={filteredObservations} />
+
             <Card className="p-6 border-2 border-cyan-900/50 bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] shadow-xl shadow-cyan-500/20">
               <div className="flex items-center gap-4 mb-4">
                 <img

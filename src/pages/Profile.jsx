@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ImpactCharts from "../components/analytics/ImpactCharts";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function Profile() {
     locations: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
+  const [userObservations, setUserObservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -91,6 +93,8 @@ export default function Profile() {
           .filter((note) => note.latitude && note.longitude)
           .map((note) => `${note.latitude},${note.longitude}`)
       );
+
+      setUserObservations(fieldNotes);
 
       setStats({
         observations: fieldNotes.length, // Renamed 'observations' to 'fieldNotes' count
@@ -512,6 +516,8 @@ export default function Profile() {
             </Card>
           </Link>
         </div>
+
+        <ImpactCharts observations={userObservations} />
 
         <Card className="border-2 border-cyan-900/50 shadow-lg bg-gradient-to-br from-[#1b263b] to-[#0d1b2a]">
           <CardHeader className="border-b border-cyan-900/50">
