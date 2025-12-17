@@ -96,8 +96,6 @@ export default function MapPage() {
     }
   };
 
-  const observationsWithCoords = observations.filter(obs => obs.latitude && obs.longitude);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0a1628] to-[#1b263b]">
