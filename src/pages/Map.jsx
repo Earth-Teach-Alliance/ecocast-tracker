@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Image, Video, Volume2, User } from "lucide-react";
@@ -17,8 +17,23 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
+function MapController({ observations }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (observations.length > 0) {
+      const bounds = L.latLngBounds(observations.map(o => [o.latitude, o.longitude]));
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [observations, map]);
+
+  return null;
+}
+
 export default function MapPage() {
-  const [center, setCenter] = useState([0, 0]);
+  // Center state is no longer strictly needed for initial render if we use fitBounds, 
+  // but we'll keep a default.
+  const [center, setCenter] = useState([20, 0]); 
 
   const { data: observations = [], isLoading } = useQuery({
     queryKey: ['fieldnotes'],
@@ -39,12 +54,8 @@ export default function MapPage() {
     refetchOnMount: 'always'
   });
 
-  useEffect(() => {
-    const withCoords = observations.filter(obs => obs.latitude && obs.longitude);
-    if (withCoords.length > 0) {
-      setCenter([withCoords[0].latitude, withCoords[0].longitude]);
-    }
-  }, [observations]);
+  // Center logic replaced by MapController
+  const observationsWithCoords = observations.filter(obs => obs.latitude && obs.longitude);
 
   const categoryColors = {
     plastics_and_trash: "bg-pink-500",
@@ -107,15 +118,16 @@ export default function MapPage() {
       <div className="flex-1 relative">
         <MapContainer
           center={center}
-          zoom={observationsWithCoords.length > 0 ? 10 : 2}
+          zoom={2}
           style={{ height: "100%", width: "100%" }}
           className="z-0"
         >
+          <MapController observations={observationsWithCoords} />
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          
+
           {observationsWithCoords.map((obs) => {
             const categories = obs.impact_categories || [];
             
