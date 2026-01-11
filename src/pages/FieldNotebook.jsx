@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, User, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FieldNoteCard from "../components/fieldnotebook/FieldNoteCard";
 import FieldNoteForm from "../components/fieldnotebook/FieldNoteForm";
 
 export default function FieldNotebook() {
   const [notes, setNotes] = useState([]);
+  const [groupNotes, setGroupNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
+  const [activeTab, setActiveTab] = useState("my-notes");
 
   useEffect(() => {
     loadNotes();
@@ -18,12 +21,33 @@ export default function FieldNotebook() {
 
   const loadNotes = async () => {
     const currentUser = await base44.auth.me();
-    const data = await base44.entities.FieldNote.filter(
+    
+    // Load my notes
+    const myData = await base44.entities.FieldNote.filter(
       { created_by: currentUser.email },
       "-created_date"
     );
-    console.log('FieldNotebook - Loaded notes:', data.length);
-    setNotes(data);
+    console.log('FieldNotebook - Loaded my notes:', myData.length);
+    setNotes(myData);
+
+    // Load group notes
+    const memberships = await base44.entities.GroupMember.filter({ user_email: currentUser.email });
+    const groupIds = memberships.map(m => m.group_id);
+    
+    if (groupIds.length > 0) {
+      const allGroupNotes = [];
+      for (const groupId of groupIds) {
+        const groupData = await base44.entities.FieldNote.filter(
+          { group_id: groupId, visibility: "private" },
+          "-created_date"
+        );
+        allGroupNotes.push(...groupData);
+      }
+      // Filter out my own notes from group notes
+      const othersGroupNotes = allGroupNotes.filter(n => n.created_by !== currentUser.email);
+      setGroupNotes(othersGroupNotes);
+    }
+    
     setIsLoading(false);
   };
 
@@ -92,33 +116,78 @@ export default function FieldNotebook() {
           }
         </AnimatePresence>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <AnimatePresence>
-            {notes.map((note) =>
-            <FieldNoteCard
-              key={note.id}
-              note={note}
-              onEdit={handleEdit} />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="bg-[#0a1628] border border-cyan-900/30 mb-6">
+            <TabsTrigger 
+              value="my-notes" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-cyan-200"
+            >
+              <User className="w-4 h-4 mr-2" />
+              My Notes ({notes.length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="group-notes" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-cyan-200"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Group Notes ({groupNotes.length})
+            </TabsTrigger>
+          </TabsList>
 
-            )}
-          </AnimatePresence>
-        </div>
+          <TabsContent value="my-notes">
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnimatePresence>
+                {notes.map((note) =>
+                <FieldNoteCard
+                  key={note.id}
+                  note={note}
+                  onEdit={handleEdit} />
 
-        {notes.length === 0 && !showForm &&
-        <div className="text-center py-16">
-            <div className="w-24 h-24 mx-auto mb-6 bg-cyan-900/20 rounded-full flex items-center justify-center">
-              <Plus className="w-12 h-12 text-cyan-400" />
+                )}
+              </AnimatePresence>
             </div>
-            <h3 className="text-2xl font-semibold text-white mb-2">Start Your Field Journal</h3>
-            <p className="text-cyan-100 mb-6">Create detailed entries of your environmental observations</p>
-            <Button
-            onClick={() => setShowForm(true)}
-            className="bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30">
 
-              Create First Entry
-            </Button>
-          </div>
-        }
+            {notes.length === 0 && !showForm &&
+            <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-cyan-900/20 rounded-full flex items-center justify-center">
+                  <Plus className="w-12 h-12 text-cyan-400" />
+                </div>
+                <h3 className="text-2xl font-semibold text-white mb-2">Start Your Field Journal</h3>
+                <p className="text-cyan-100 mb-6">Create detailed entries of your environmental observations</p>
+                <Button
+                onClick={() => setShowForm(true)}
+                className="bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30">
+
+                  Create First Entry
+                </Button>
+              </div>
+            }
+          </TabsContent>
+
+          <TabsContent value="group-notes">
+            <div className="grid gap-6 md:grid-cols-2">
+              <AnimatePresence>
+                {groupNotes.map((note) =>
+                <FieldNoteCard
+                  key={note.id}
+                  note={note}
+                  onEdit={null} />
+
+                )}
+              </AnimatePresence>
+            </div>
+
+            {groupNotes.length === 0 &&
+            <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-cyan-900/20 rounded-full flex items-center justify-center">
+                  <Users className="w-12 h-12 text-cyan-400" />
+                </div>
+                <h3 className="text-2xl font-semibold text-white mb-2">No Group Entries Yet</h3>
+                <p className="text-cyan-100 mb-6">Join a group to see entries from your classmates and team members</p>
+              </div>
+            }
+          </TabsContent>
+        </Tabs>
       </div>
     </div>);
 
