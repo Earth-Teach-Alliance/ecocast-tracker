@@ -1,19 +1,23 @@
 import Feed from './pages/Feed';
-import Map from './pages/Map';
 import FieldNotebook from './pages/FieldNotebook';
+import Home from './pages/Home';
+import Map from './pages/Map';
+import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import TrendsAnalyst from './pages/TrendsAnalyst';
-import Messages from './pages/Messages';
+import Upload from './pages/Upload';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Feed": Feed,
-    "Map": Map,
     "FieldNotebook": FieldNotebook,
+    "Home": Home,
+    "Map": Map,
+    "Messages": Messages,
     "Profile": Profile,
     "TrendsAnalyst": TrendsAnalyst,
-    "Messages": Messages,
+    "Upload": Upload,
 }
 
 export const pagesConfig = {

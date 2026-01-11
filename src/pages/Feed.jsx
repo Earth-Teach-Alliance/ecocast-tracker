@@ -236,7 +236,7 @@ export default function Feed() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
               <h1 className="text-neutral-50 mb-2 text-xl font-bold drop-shadow-lg">{t("measuringImpact")}</h1>
-              <p className="text-lg text-cyan-300">{t("earthReporters")}</p>
+              <p className="text-lg text-cyan-300">Community investigators of human activity and climate disparities in urban environments.</p>
             </div>
             <div className="flex gap-2">
               <Button
