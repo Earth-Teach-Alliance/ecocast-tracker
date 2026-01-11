@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic, ChevronDown, ChevronUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X, Upload, MapPin, Loader2, Plus, Check, AlertCircle, Camera, Video, Mic, ChevronDown, ChevronUp, Lock, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "../LanguageContext";
 
 export default function FieldNoteForm({ note, onSubmit, onCancel }) {
   const { t } = useLanguage();
+  const [myGroups, setMyGroups] = useState([]);
   const [formData, setFormData] = useState(note || {
     title: "",
     notes: "",
@@ -32,8 +34,27 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     tags: [],
     human_impact: "",
     climate_change_impacts: "",
-    tree_equity_index: null // Changed from "" to null
+    tree_equity_index: null,
+    visibility: "public",
+    group_id: ""
   });
+
+  useEffect(() => {
+    loadMyGroups();
+  }, []);
+
+  const loadMyGroups = async () => {
+    const user = await base44.auth.me();
+    const memberships = await base44.entities.GroupMember.filter({ user_email: user.email });
+    const groupIds = memberships.map(m => m.group_id);
+    
+    if (groupIds.length > 0) {
+      const groups = await Promise.all(
+        groupIds.map(id => base44.entities.Group.filter({ id }))
+      );
+      setMyGroups(groups.flat());
+    }
+  };
   const [newTag, setNewTag] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -745,6 +766,70 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
                   ))}
                 </div>
               )}
+            </div>
+
+            <div className="border-t border-amber-200 pt-6 mt-6">
+              <Label className="text-lg font-semibold mb-4 block">Sharing Settings</Label>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="visibility">Visibility</Label>
+                  <Select
+                    value={formData.visibility}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, visibility: value, group_id: value === "public" ? "" : formData.group_id });
+                    }}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4" />
+                          <span>Public - Share on community feed</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="private">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          <span>Private - Share only with my group</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.visibility === "private" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <Label htmlFor="group">Select Group</Label>
+                    <Select
+                      value={formData.group_id}
+                      onValueChange={(value) => setFormData({ ...formData, group_id: value })}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Choose a group..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {myGroups.map((group) => (
+                          <SelectItem key={group.id} value={group.id}>
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {myGroups.length === 0 && (
+                      <p className="text-sm text-amber-600 mt-2">
+                        You need to join a group first to share privately
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+              </div>
             </div>
           </CardContent>
 
