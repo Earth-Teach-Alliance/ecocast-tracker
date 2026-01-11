@@ -43,8 +43,25 @@ export default function ImpactCharts({ observations }) {
     // Geographic (Top Locations)
     const locationCounts = {};
     observations.forEach(obs => {
-      // Prioritize country, then city, then state, then generic location name
-      const loc = obs.country || obs.city || obs.state || 'Unknown';
+      // Only count if location has valid coordinates or country data
+      if (!obs.latitude && !obs.longitude && !obs.country) {
+        return; // Skip if no geographic data at all
+      }
+      
+      let country = obs.country || '';
+      
+      // Normalize country names
+      if (country) {
+        country = country.trim();
+        // Consolidate USA variations
+        if (country.toLowerCase() === 'usa' || 
+            country.toLowerCase() === 'us' || 
+            country.toLowerCase() === 'united states of america') {
+          country = 'United States';
+        }
+      }
+      
+      const loc = country || obs.city || obs.state || obs.location_name || 'Unknown';
       locationCounts[loc] = (locationCounts[loc] || 0) + 1;
     });
     const locationData = Object.entries(locationCounts)
