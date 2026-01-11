@@ -37,14 +37,12 @@ export default function Feed() {
   const { data: observations = [], isLoading } = useQuery({
     queryKey: ['fieldnotes'],
     queryFn: async () => {
-      // Only show public entries in the feed
-      const result = await base44.entities.FieldNote.filter(
-        { visibility: "public" },
-        "-created_date"
-      );
-      console.log('Feed - Total observations loaded:', result.length);
-      console.log('Feed - Created by users:', [...new Set(result.map(r => r.created_by))]);
-      return result;
+      // Load all entries, then filter out private ones (entries without visibility field default to public)
+      const result = await base44.entities.FieldNote.list("-created_date");
+      const publicEntries = result.filter(entry => entry.visibility !== "private");
+      console.log('Feed - Total observations loaded:', publicEntries.length);
+      console.log('Feed - Created by users:', [...new Set(publicEntries.map(r => r.created_by))]);
+      return publicEntries;
     },
     initialData: [],
     staleTime: 0,
