@@ -233,20 +233,30 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
     }
     
     // Geocode location_name or address if no GPS coordinates OR if country is missing (populate address data)
-    // We check if we need to enrich the data either with coords or address details
     const needsCoords = !finalFormData.latitude || !finalFormData.longitude;
     const needsAddress = !finalFormData.country;
-    
+
     if (needsCoords || needsAddress) {
-      const locationToGeocode = finalFormData.location_name || 
-        [finalFormData.address, finalFormData.city, finalFormData.state, finalFormData.country].filter(Boolean).join(", ");
-      
-      // If we have coords but no address/location name, we can reverse geocode the coords
-      const prompt = needsCoords && locationToGeocode
-        ? `Get the precise GPS coordinates (latitude, longitude) AND address details (city, state, country) for: "${locationToGeocode}".`
-        : !needsCoords
-          ? `Reverse geocode these coordinates: ${finalFormData.latitude}, ${finalFormData.longitude}. Return city, state, country.`
-          : null;
+      // Build location string from available data
+      const locationParts = [
+        finalFormData.location_name,
+        finalFormData.address,
+        finalFormData.city,
+        finalFormData.state,
+        finalFormData.country
+      ].filter(Boolean);
+
+      const locationToGeocode = locationParts.join(", ");
+
+      // Determine geocoding strategy
+      let prompt = null;
+      if (needsCoords && locationToGeocode) {
+        // Need coordinates - forward geocode from location string
+        prompt = `Get the precise GPS coordinates (latitude, longitude) AND full address details (address, city, state/province, country) for: "${locationToGeocode}". Return exact numerical coordinates.`;
+      } else if (!needsCoords && needsAddress) {
+        // Have coords but need address - reverse geocode
+        prompt = `Reverse geocode these coordinates: ${finalFormData.latitude}, ${finalFormData.longitude}. Return the full address (city, state, country).`;
+      }
 
       if (prompt) {
         submissionBlockingUpload = true;
@@ -260,23 +270,28 @@ export default function FieldNoteForm({ note, onSubmit, onCancel }) {
               properties: {
                 latitude: { type: "number" },
                 longitude: { type: "number" },
+                address: { type: "string" },
                 city: { type: "string" },
                 state: { type: "string" },
                 country: { type: "string" }
               }
             }
           });
-          
+
           if (geocodeResult) {
-            if (needsCoords && typeof geocodeResult.latitude === 'number') {
+            // Update coordinates if they were missing
+            if (needsCoords && typeof geocodeResult.latitude === 'number' && typeof geocodeResult.longitude === 'number') {
               finalFormData.latitude = geocodeResult.latitude;
               finalFormData.longitude = geocodeResult.longitude;
+              console.log('Geocoded coordinates:', geocodeResult.latitude, geocodeResult.longitude);
             }
+
             // Populate missing address fields
             if (!finalFormData.country && geocodeResult.country) finalFormData.country = geocodeResult.country;
             if (!finalFormData.state && geocodeResult.state) finalFormData.state = geocodeResult.state;
             if (!finalFormData.city && geocodeResult.city) finalFormData.city = geocodeResult.city;
-            
+            if (!finalFormData.address && geocodeResult.address) finalFormData.address = geocodeResult.address;
+
             console.log('Geocoded result:', geocodeResult);
           }
         } catch (error) {
