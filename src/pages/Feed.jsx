@@ -258,14 +258,14 @@ export default function Feed() {
           </div>
         </div>
 
-        {analysis && analysis.totalObservations > 0 && (
+        {observations.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
-            <ImpactCharts observations={filteredObservations} />
+            <ImpactCharts observations={observations} />
 
             <Card className="p-6 border-2 border-cyan-900/50 bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] shadow-xl shadow-cyan-500/20">
               <div className="flex items-center gap-4 mb-4">
