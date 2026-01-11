@@ -267,63 +267,65 @@ export default function Feed() {
           >
             <ImpactCharts observations={observations} />
 
-            <Card className="p-6 border-2 border-cyan-900/50 bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] shadow-xl shadow-cyan-500/20">
-              <div className="flex items-center gap-4 mb-4">
-                <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ea68d0d5ddf7783ea8c465/b9c21dbeb_Untitleddesign37.png"
-                  alt="Impact Dashboard"
-                  className="w-8 h-8"
-                  style={{ filter: 'invert(70%) sepia(50%) saturate(500%) hue-rotate(160deg) brightness(1.2)' }}
-                />
-                <div>
-                  <h3 className="text-xl font-bold text-white">{t("impactDashboard")}</h3>
-                  <p className="text-cyan-300 text-sm">{t("breakdown")}</p>
-                </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4 text-white">
-                <div>
-                  <p className="font-semibold text-cyan-200">{t("totalObservations")}:</p>
-                  <p className="text-xl font-bold text-cyan-400">{analysis.totalObservations}</p>
-                </div>
-                {analysis.mostCommonCategory && (
+            {analysis && analysis.totalObservations > 0 && (
+              <Card className="p-6 border-2 border-cyan-900/50 bg-gradient-to-br from-[#1b263b] to-[#0d1b2a] shadow-xl shadow-cyan-500/20">
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ea68d0d5ddf7783ea8c465/b9c21dbeb_Untitleddesign37.png"
+                    alt="Impact Dashboard"
+                    className="w-8 h-8"
+                    style={{ filter: 'invert(70%) sepia(50%) saturate(500%) hue-rotate(160deg) brightness(1.2)' }}
+                  />
                   <div>
-                    <p className="font-semibold text-cyan-200">{t("mostReported")}:</p>
-                    <Badge className={`${categoryColors[analysis.mostCommonCategory]} border-0 font-semibold text-lg py-1 px-3`}>
-                      {categoryLabels[analysis.mostCommonCategory] || analysis.mostCommonCategory}
-                    </Badge>
-                    <span className="ml-2 text-cyan-300 text-sm">({analysis.mostCommonCategoryCount} reports)</span>
+                    <h3 className="text-xl font-bold text-white">{t("impactDashboard")}</h3>
+                    <p className="text-cyan-300 text-sm">{t("breakdown")}</p>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 text-white">
+                  <div>
+                    <p className="font-semibold text-cyan-200">{t("totalObservations")}:</p>
+                    <p className="text-xl font-bold text-cyan-400">{analysis.totalObservations}</p>
+                  </div>
+                  {analysis.mostCommonCategory && (
+                    <div>
+                      <p className="font-semibold text-cyan-200">{t("mostReported")}:</p>
+                      <Badge className={`${categoryColors[analysis.mostCommonCategory]} border-0 font-semibold text-lg py-1 px-3`}>
+                        {categoryLabels[analysis.mostCommonCategory] || analysis.mostCommonCategory}
+                      </Badge>
+                      <span className="ml-2 text-cyan-300 text-sm">({analysis.mostCommonCategoryCount} reports)</span>
+                    </div>
+                  )}
+                </div>
+                {Object.keys(analysis.categoryCounts).length > 1 && (
+                  <div className="mt-4 pt-4 border-t border-cyan-900/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-semibold text-cyan-200">Breakdown by Category:</p>
+                      {selectedCategory && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSelectedCategory(null)}
+                          className="text-xs text-cyan-400 hover:text-cyan-200 h-6 px-2"
+                        >
+                          <X className="w-3 h-3 mr-1" /> Clear Filter
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(analysis.categoryCounts).map(([cat, count]) => (
+                        <Badge 
+                          key={cat} 
+                          className={`${categoryColors[cat]} border-0 text-sm cursor-pointer transition-all hover:opacity-80 ${selectedCategory === cat ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a1628] scale-105' : selectedCategory ? 'opacity-50' : ''}`}
+                          onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                        >
+                          {categoryLabels[cat] || cat} ({count})
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-              {Object.keys(analysis.categoryCounts).length > 1 && (
-                <div className="mt-4 pt-4 border-t border-cyan-900/50">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-cyan-200">Breakdown by Category:</p>
-                    {selectedCategory && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setSelectedCategory(null)}
-                        className="text-xs text-cyan-400 hover:text-cyan-200 h-6 px-2"
-                      >
-                        <X className="w-3 h-3 mr-1" /> Clear Filter
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(analysis.categoryCounts).map(([cat, count]) => (
-                      <Badge 
-                        key={cat} 
-                        className={`${categoryColors[cat]} border-0 text-sm cursor-pointer transition-all hover:opacity-80 ${selectedCategory === cat ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a1628] scale-105' : selectedCategory ? 'opacity-50' : ''}`}
-                        onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                      >
-                        {categoryLabels[cat] || cat} ({count})
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
+              </Card>
+            )}
           </motion.div>
         )}
 
