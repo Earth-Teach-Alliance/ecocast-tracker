@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Upload, Map, BookOpen, User, TrendingUp, Languages, Mail } from "lucide-react";
+import { Home, Upload, Map, BookOpen, User, TrendingUp, Languages, Mail, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -40,6 +40,11 @@ function LayoutContent({ children, currentPageName }) {
     title: t("fieldNotebook"),
     url: createPageUrl("FieldNotebook"),
     icon: BookOpen
+  },
+  {
+    title: "Groups",
+    url: createPageUrl("Groups"),
+    icon: Users
   },
   {
     title: t("map"),

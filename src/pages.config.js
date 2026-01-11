@@ -6,6 +6,7 @@ import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import TrendsAnalyst from './pages/TrendsAnalyst';
 import Upload from './pages/Upload';
+import Groups from './pages/Groups';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Profile": Profile,
     "TrendsAnalyst": TrendsAnalyst,
     "Upload": Upload,
+    "Groups": Groups,
 }
 
 export const pagesConfig = {
