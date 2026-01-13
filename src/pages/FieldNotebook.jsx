@@ -2,16 +2,18 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, User, Users } from "lucide-react";
+import { Plus, User, Users, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FieldNoteCard from "../components/fieldnotebook/FieldNoteCard";
 import FieldNoteForm from "../components/fieldnotebook/FieldNoteForm";
+import CSVImport from "../components/fieldnotebook/CSVImport";
 
 export default function FieldNotebook() {
   const [notes, setNotes] = useState([]);
   const [groupNotes, setGroupNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [activeTab, setActiveTab] = useState("my-notes");
 
@@ -111,6 +113,15 @@ export default function FieldNotebook() {
             onCancel={() => {
               setShowForm(false);
               setEditingNote(null);
+            }} />
+
+          }
+          
+          {showImport &&
+          <CSVImport
+            onImportComplete={() => {
+              setShowImport(false);
+              loadNotes();
             }} />
 
           }
