@@ -93,16 +93,24 @@ export default function FieldNotebook() {
             <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">My Field Notes</h1>
             <p className="text-lg text-cyan-300">Document your detailed observations and findings. You can leave blank anything that doesn't apply.</p>
           </div>
-          <Button
-            onClick={() => {
-              setEditingNote(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30">
-
-            <Plus className="w-5 h-5 mr-2" />
-            New Entry
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowImport(!showImport)}
+              variant="outline"
+              className="border-cyan-700 text-cyan-300 hover:bg-cyan-900/30">
+              <Upload className="w-5 h-5 mr-2" />
+              Import CSV
+            </Button>
+            <Button
+              onClick={() => {
+                setEditingNote(null);
+                setShowForm(!showForm);
+              }}
+              className="bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30">
+              <Plus className="w-5 h-5 mr-2" />
+              New Entry
+            </Button>
+          </div>
         </div>
 
         <AnimatePresence>
