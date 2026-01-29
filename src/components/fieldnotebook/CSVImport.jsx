@@ -2,12 +2,14 @@ import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Upload, Loader2, CheckCircle, AlertCircle, Download } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function CSVImport({ onImportComplete }) {
   const [isUploading, setIsUploading] = useState(false);
   const [status, setStatus] = useState(null);
+  const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
 
   const handleFileUpload = async (e) => {
@@ -60,7 +62,7 @@ export default function CSVImport({ onImportComplete }) {
         return;
       }
 
-      // Process and bulk create entries
+      // Process entries
       const entries = result.output.entries || [];
       const processedEntries = entries.map(entry => ({
         title: entry.title || "Untitled Entry",
@@ -83,7 +85,21 @@ export default function CSVImport({ onImportComplete }) {
         visibility: "public"
       }));
 
-      await base44.entities.FieldNote.bulkCreate(processedEntries);
+      // Batch import to avoid rate limits (5 entries at a time)
+      const batchSize = 5;
+      let imported = 0;
+      
+      for (let i = 0; i < processedEntries.length; i += batchSize) {
+        const batch = processedEntries.slice(i, i + batchSize);
+        await base44.entities.FieldNote.bulkCreate(batch);
+        imported += batch.length;
+        setProgress(Math.round((imported / processedEntries.length) * 100));
+        
+        // Small delay between batches
+        if (i + batchSize < processedEntries.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       setStatus({ 
         type: "success", 
@@ -170,6 +186,15 @@ Example Entry,Detailed field observations here,Brief description,2024-01-15,14:3
               </Button>
             </div>
           </div>
+
+          {isUploading && progress > 0 && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-cyan-300 text-sm text-center">
+                Importing entries... {progress}%
+              </p>
+            </div>
+          )}
 
           {status && (
             <motion.div
