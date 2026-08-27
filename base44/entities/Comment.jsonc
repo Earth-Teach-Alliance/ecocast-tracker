@@ -1,0 +1,22 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "field_note_id": {
+      "type": "string",
+      "description": "ID of the field note being commented on"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of commenter for display"
+    }
+  },
+  "required": [
+    "field_note_id",
+    "content"
+  ]
+}

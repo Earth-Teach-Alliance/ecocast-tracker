@@ -1,0 +1,175 @@
+{
+  "name": "FieldNote",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the field note entry"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Detailed field observations and notes"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the observation"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of observation"
+    },
+    "time": {
+      "type": "string",
+      "description": "Time of observation"
+    },
+    "weather": {
+      "type": "string",
+      "description": "Weather conditions"
+    },
+    "temperature": {
+      "type": "string",
+      "description": "Temperature reading"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "GPS latitude coordinate"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "GPS longitude coordinate"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Human-readable location name"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "city": {
+      "type": "string",
+      "description": "City name"
+    },
+    "state": {
+      "type": "string",
+      "description": "State or province"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country name"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of image URLs"
+    },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "audio"
+      ],
+      "description": "Type of primary media"
+    },
+    "media_url": {
+      "type": "string",
+      "description": "URL of primary media file"
+    },
+    "impact_categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plastics_and_trash",
+          "pollutants_and_waste",
+          "air_quality",
+          "deforestation",
+          "biodiversity_impacts",
+          "water_quality",
+          "extreme_heat_and_drought_impacts",
+          "fires_natural_or_human_caused",
+          "conservation_restoration",
+          "human_disparities_and_inequity",
+          "soundscape",
+          "other"
+        ]
+      },
+      "description": "Categories of environmental impact (multiple selection allowed)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "human_impact": {
+      "type": "string",
+      "description": "Observed human impact on environment"
+    },
+    "climate_change_impacts": {
+      "type": "string",
+      "description": "Observed impacts of climate change on humans and/or environment"
+    },
+    "tree_equity_index": {
+      "type": "number",
+      "description": "Tree Equity Score for the location (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "likes": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of likes"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public",
+      "description": "Whether entry is public or private to group"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "ID of the group this entry belongs to (if private)"
+    }
+  },
+  "required": [
+    "title",
+    "date"
+  ],
+  "rls": {
+    "create": true,
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

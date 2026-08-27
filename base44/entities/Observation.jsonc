@@ -1,0 +1,85 @@
+{
+  "name": "Observation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the observation"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what was observed"
+    },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "audio"
+      ],
+      "description": "Type of media uploaded"
+    },
+    "media_url": {
+      "type": "string",
+      "description": "URL of the uploaded media"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "GPS latitude coordinate"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "GPS longitude coordinate"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Human-readable location name"
+    },
+    "impact_category": {
+      "type": "string",
+      "enum": [
+        "pollutants_and_waste",
+        "air_quality",
+        "deforestation",
+        "biodiversity_impacts",
+        "water_quality",
+        "extreme_heat_and_drought_impacts",
+        "fires_natural_or_human_caused",
+        "conservation_restoration",
+        "human_disparities_and_inequity",
+        "soundscape",
+        "other"
+      ],
+      "description": "Category of environmental impact"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds for video/audio"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of likes for this observation"
+    }
+  },
+  "required": [
+    "title",
+    "media_type",
+    "media_url"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

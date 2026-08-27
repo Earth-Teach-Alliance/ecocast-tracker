@@ -1,0 +1,41 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of user receiving notification"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "comment",
+        "message",
+        "follow"
+      ],
+      "description": "Type of notification"
+    },
+    "content": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "ID of related entity (field note, message, etc)"
+    },
+    "from_user": {
+      "type": "string",
+      "description": "Email of user who triggered notification"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "content"
+  ]
+}

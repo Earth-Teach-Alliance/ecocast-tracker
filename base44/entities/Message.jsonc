@@ -1,0 +1,28 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "from_user": {
+      "type": "string",
+      "description": "Email of sender"
+    },
+    "to_user": {
+      "type": "string",
+      "description": "Email of recipient"
+    },
+    "content": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether message has been read"
+    }
+  },
+  "required": [
+    "from_user",
+    "to_user",
+    "content"
+  ]
+}

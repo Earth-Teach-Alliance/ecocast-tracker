@@ -1,0 +1,27 @@
+{
+  "name": "Group",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the group or class"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the group"
+    },
+    "code": {
+      "type": "string",
+      "description": "Unique join code for the group"
+    },
+    "teacher_email": {
+      "type": "string",
+      "description": "Email of the teacher/group leader"
+    }
+  },
+  "required": [
+    "name",
+    "code",
+    "teacher_email"
+  ]
+}

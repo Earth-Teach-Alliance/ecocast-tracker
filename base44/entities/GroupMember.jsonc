@@ -1,0 +1,27 @@
+{
+  "name": "GroupMember",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "description": "ID of the group"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the group member"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "teacher",
+        "student"
+      ],
+      "default": "student",
+      "description": "Role in the group"
+    }
+  },
+  "required": [
+    "group_id",
+    "user_email"
+  ]
+}

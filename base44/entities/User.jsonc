@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "profile_picture_url": {
+      "type": "string",
+      "description": "URL of the user's profile picture"
+    },
+    "bio": {
+      "type": "string",
+      "description": "User biography"
+    },
+    "profile_header_image": {
+      "type": "string",
+      "description": "URL of the user's profile header background image"
+    }
+  },
+  "name": "User",
+  "required": [
+    "profile_picture_url",
+    "bio"
+  ]
+}
